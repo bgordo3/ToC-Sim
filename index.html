@@ -18,20 +18,14 @@
         <div id="menu-button-container" class="menu-button-container span-one-col">
             <a id="menu-button" class="menu-button">
                 <svg xmlns="http://www.w3.org/2000/svg" class="menu-button-svg">
-                    <path class="button-image" d="M2 6h20v3H2zm0 5h20v3H2zm0 5h20v3H2z" viewbox="0 0 36 36" />
+                    <path class="button-image" d="M2 6h20v3H2zm0 5h20v3H2zm0 5h20v3H2z" viewbox="0 0 36 36"></path>
                 </svg>
             </a>
         </div>
-        <div id="reload-container" class="span-two-col control hidden" onclick="clearUI()">
+        <div id="reload-container" class="span-two-col control hidden" onclick="reload()">
             <img class="arrow" src="img/reload.png">
             <div class="label">Reload</div>
         </div>
-        <!--
-        <div id="prev-container" class="span-two-col">
-            <img class="arrow" src="img/prev.png">
-            <div class="label">Previous Day</div>
-        </div>
--->
         <div id="title-container" class="span-four-col">
             <div class="span-one-col"></div>
             <h2 id="header-text" class="header-text">Theory of Constraints</h2>
@@ -45,7 +39,6 @@
             <img class="arrow" src="img/comp.png">
             <div class="label">Complete</div>
         </div>
-    </div>
     </div>
     <div id="content-container" class="content-container">
         <nav id="menu-container" class="nav">
@@ -75,8 +68,10 @@
             </div>
         </div>
     </div>
+
+    <script type="text/javascript" src="js/scenarios.js"></script>
+    <script type="text/javascript" src="js/model.js"></script>
+    <script type="text/javascript" src="js/viewmodel.js"></script>
 </body>
-<script src="js/model.js"></script>
-<script src="js/viewmodel.js"></script>
 
 </html>

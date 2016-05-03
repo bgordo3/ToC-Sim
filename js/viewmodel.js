@@ -21,8 +21,8 @@ var ViewModel = function () {
     self.currentScenario = ko.observable();
     self.scenarios = ko.observableArray();
     self.scenarioTitle = ko.observable('Please choose a scenario');
-    self.numOfStations = ko.observable('5');
-    self.numOfDays = ko.observable('30');
+    self.numOfStations = ko.observable(5);
+    self.numOfDays = ko.observable(30);
     self.currentDay = ko.observable(0);
 
     //populate locations observable container with data from model
@@ -47,6 +47,8 @@ var ViewModel = function () {
         $nav.removeClass('open');
     });
 
+
+    //click action for when user clicks on custom scenario from menu.
     $customScenario.click(function () {
         $customSettings.toggle("slow");
         self.scenarioTitle("Custom Scenario");
@@ -61,7 +63,6 @@ var ViewModel = function () {
         self.currentScenario(this);
         self.scenarioTitle(self.currentScenario().name);
         $customSettings.toggle(false);
-        self.currentScenario().verify();
         self.numOfStations(self.currentScenario().numOfStations);
         self.numOfDays(self.currentScenario().numOfDays);
         self.buildUI();
@@ -74,6 +75,7 @@ var ViewModel = function () {
         $nav.removeClass('open');
         self.numOfDays($('#days').val());
         self.numOfStations($('#stations').val());
+        self.currentDay(0);
         var scenarioData = {
             name: "Custom Scenario",
             numOfStations: self.numOfStations(),
@@ -93,7 +95,6 @@ var ViewModel = function () {
             var tempStation = new StationItem(data);
             self.currentScenario().addStation(tempStation);
         }
-        self.currentScenario().verify();
         self.buildUI();
     }
 
@@ -125,12 +126,15 @@ var ViewModel = function () {
         $('#scenario-graph').remove();
         $('.station').remove();
         $('.control').addClass("hidden");
+        self.currentDay(0);
     }
 
+    //reset
     window.reload = function () {
         self.currentScenario().reload();
         self.currentDay(0);
-        console.clear()
+        $('.station-textarea').text('');
+        $('.scenario-graph').text('');
     }
 
     window.runProduction = function () {
@@ -142,7 +146,6 @@ var ViewModel = function () {
             }
         }
         if (runCalc) {
-            console.log("Day: " + day);
             self.currentScenario().totalMissedOp()[day] = 0;
             self.currentScenario().totalProduction()[day] = 0;
             for (var i = 0; i < self.currentScenario().stations().length; i++) {
@@ -167,18 +170,12 @@ var ViewModel = function () {
                 var stationID = 'station' + currentStation.number + '-textarea';
                 var stationTextToAdd = '';
                 var textbox = $('#' + stationID);
-                //                if (self.currentDay() == 0) {
-                //                    stationTextToAdd = "Day \t WIP \t Capacity \t Output \t Missed \n"
-                //                    textbox.text(stationTextToAdd);
-                //                }
                 textbox.text(self.currentDay() + '\t ' +
                     currentStation.wipValues()[day] + '\t\t' +
                     currentStation.productionValues()[day] + '\t\t' +
                     currentStation.output()[day] + '\t\t' +
                     currentStation.missedOp()[day] + '\n' + textbox.val());
             }
-
-            console.log("Missed Op: " + self.currentScenario().totalMissedOp()[day])
 
             //set total production for the day equal to last station's output for the day
             self.currentScenario().totalProduction()[day] =
@@ -187,8 +184,6 @@ var ViewModel = function () {
 
             printTotalResults();
 
-        } else {
-            console.log("Data exists...skipping calc");
         }
     };
 
@@ -211,30 +206,8 @@ var ViewModel = function () {
         totalHTMLText = "Total production: " + totalProd + '\n' +
             "Total missed op: " + totalMissed;
         $('#scenario-graph').text(totalHTMLText);
-
     }
-
 };
-
-window.prevDay = function () {
-    if (self.currentDay() > 1)
-        self.currentDay(self.currentDay() - 1);
-};
-/*
-//logic to make navigation bar "float with scroll
-$(document).ready(function () {
-
-    var num = 120; //number of pixels before modifying styles
-
-    $(window).bind('scroll', function () {
-        if ($(window).scrollTop() > num) {
-            $('.sim-header').addClass('fixed');
-        } else {
-            $('.sim-header').removeClass('fixed');
-        }
-    });
-});
-*/
 
 //instaniate our controller
 app.viewModel = new ViewModel();

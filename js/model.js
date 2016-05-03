@@ -1,4 +1,4 @@
-/*global $,ko, google */
+/*global $,ko, Scenarios */
 var app = app || {};
 
 /**
@@ -8,73 +8,7 @@ var app = app || {};
 var Model = function () {
     'use strict';
     var self = this;
-    self.scenarios = [
-        {
-            name: 'Scenario 1',
-            numOfDays: 30,
-            stations: [
-                {
-                    number: 1,
-                    baseProduction: 5,
-                    initWIP: 4,
-                    sigma: 1
-                },
-                {
-                    number: 2,
-                    initWIP: 2,
-                    baseProduction: 6,
-                    sigma: .5
-                },
-                {
-                    number: 3,
-                    initWIP: 4,
-                    baseProduction: 7,
-                    sigma: .1
-                }
-            ]
-        },
-        {
-            name: 'Scenario 2',
-            numOfDays: 30
-        },
-        {
-            name: 'Scenario 3',
-            numOfDays: 30
-        },
-        {
-            name: 'Scenario 4',
-            numOfDays: 30
-        },
-        {
-            name: "Scenario 5",
-            numOfDays: 30
-        },
-        {
-            name: "Scenario 6",
-            numOfDays: 20,
-            stations: [
-                {
-                    number: 1,
-                    baseProduction: 10,
-                    initWIP: 4,
-                    sigma: 0
-                },
-                {
-                    number: 2,
-                    initWIP: 2,
-                    baseProduction: 5,
-                    sigma: 0
-                },
-                {
-                    number: 3,
-                    initWIP: 1,
-                    baseProduction: 5,
-                    sigma: 0
-                }
-            ]
-        }
-    ];
-
+    self.scenarios = Scenarios; //These are defined in the scenarios.js file
 
     /**
      * @description - returns model location
@@ -94,6 +28,7 @@ var ScenarioItem = function (data) {
     'use strict';
     var self = this;
 
+    //initializes the scenario item.
     self.init = function () {
         self.stations = ko.observableArray();
         self.name = data.name;
@@ -106,43 +41,22 @@ var ScenarioItem = function (data) {
             self.numOfStations = data.stations.length;
             data.stations.forEach(function (station) {
                 self.stations().push(new StationItem(station));
-                console.log("Loaded " + data.name + " - Station: " + station.number);
             });
-        } else {
-            //   console.log("No Stations defined in scenario.")
         }
     };
 
     self.init();
 
-
-
+    //adds a station to our array of stations
     self.addStation = function (station) {
         self.stations.push(station);
         self.numOfStations = self.numOfStations + 1;
     }
 
-    self.verify = function () {
-        console.clear()
-        console.log("Name: " + self.name);
-        console.log("Number of Days: " + self.numOfDays);
-        console.log("Number of Stations: " + self.numOfStations);
-        console.log("----Stations Data-------");
-        self.stations().forEach(function (station) {
-            console.log(station.title);
-            console.log("   WIP: " + station.wipValues()[0]);
-            console.log("   Base Production: " + station.baseProduction());
-            console.log("   Sigma: " + station.sigma());
-        });
-    }
-
+    //re-initializes this scenario
     self.reload = function () {
         self.init()
     }
-
-
-
-
 };
 
 //Defines our Station objects. 
@@ -178,23 +92,23 @@ var StationItem = function (data) {
         var random = (Math.random() * self.sigma() * 2) - self.sigma();
         var todaysProduction = self.baseProduction() + self.baseProduction() * random;
         self.productionValues()[day] = Math.round(todaysProduction);
-        // console.log("Sigma:" + self.sigma());
-        // console.log("Random:" + random);
-        // console.log("Base Production: " + self.baseProduction() + " --- Today's Production: " + self.productionValues()[day]);
     }
 
 
     //does the stations work for the day. sets output, next day's WIP, and missed Opportunities
     self.doWork = function (day, wipToAdd) {
-        self.calcProduction(day)
-            //if we're station 1, our WIP is our production
+        //first we need to calcuate or capacity for the day
+        self.calcProduction(day);
+
+        var todayProduction = self.productionValues()[day];
+        //if we're station 1, our WIP is our production
         if (self.number == 1) {
             self.wipValues()[day] = self.productionValues()[day];
         } else {
             self.wipValues()[day] = self.wipValues()[day] + wipToAdd;
         }
 
-        var todayProduction = self.productionValues()[day];
+
 
         if (self.wipValues()[day] >= todayProduction) {
             self.output()[day] = todayProduction;
@@ -205,11 +119,6 @@ var StationItem = function (data) {
             self.missedOp()[day] = todayProduction - self.wipValues()[day];
             self.wipValues()[day + 1] = 0;
         }
-        //   console.log("Output for " + self.title);
-        //    console.log("     Output: " + self.output()[day]);
-        //   console.log("     Tomorrow's WIP: " + self.wipValues()[day + 1]);
-        //   console.log("     MissedOp: " + self.missedOp()[day]);
-
     };
 
 }
