@@ -160,7 +160,7 @@ var StationItem = function (data) {
 
     //set inventory data if defined in scenario
     if (data.initWIP) {
-        self.wipValues().push(data.initWIP);
+        self.wipValues()[0] = data.initWIP;
     }
 
     //set baseProduction data if defined in scenario
@@ -186,24 +186,23 @@ var StationItem = function (data) {
 
     //does the stations work for the day. sets output, next day's WIP, and missed Opportunities
     self.doWork = function (day, wipToAdd) {
-        var todayWIP = self.wipValues()[day];
         self.calcProduction(day)
             //if we're station 1, our WIP is our production
         if (self.number == 1) {
-            todayWIP = self.productionValues()[day];
+            self.wipValues()[day] = self.productionValues()[day];
         } else {
-            todayWIP = todayWIP + wipToAdd;
+            self.wipValues()[day] = self.wipValues()[day] + wipToAdd;
         }
 
         var todayProduction = self.productionValues()[day];
 
-        if (todayWIP >= todayProduction) {
+        if (self.wipValues()[day] >= todayProduction) {
             self.output()[day] = todayProduction;
             self.missedOp()[day] = 0;
-            self.wipValues()[day + 1] = todayWIP - todayProduction;
+            self.wipValues()[day + 1] = self.wipValues()[day] - todayProduction;
         } else {
-            self.output()[day] = todayWIP;
-            self.missedOp()[day] = todayProduction - todayWIP;
+            self.output()[day] = self.wipValues()[day];
+            self.missedOp()[day] = todayProduction - self.wipValues()[day];
             self.wipValues()[day + 1] = 0;
         }
         //   console.log("Output for " + self.title);

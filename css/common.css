@@ -170,6 +170,7 @@ body {
     width: 100%;
     height: 200px;
     display: flex;
+    border-width: thin;
 }
 
 .station-data {
@@ -182,6 +183,20 @@ body {
     width: 70%;
     height: 100%;
     background-color: lightslategray;
+}
+
+.station-textarea {
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 180px;
+}
+
+.station-label {
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 20px;
 }
 
 #sim-header.fixed {
