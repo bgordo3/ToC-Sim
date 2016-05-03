@@ -89,7 +89,7 @@ var ViewModel = function () {
             var data = {
                 number: i,
                 initWIP: 10,
-                baseProduction: 10,
+                baseCapacity: 10,
                 sigma: 0
             };
             var tempStation = new StationItem(data);
@@ -101,11 +101,14 @@ var ViewModel = function () {
     self.buildUI = function () {
         self.clearUI();
         $('.control').removeClass("hidden");
+        var text = "Day\t WIP\t     Capacity\t     Output\t     Missed"
         var headerHTML = '<div id="scenario-data" class="scenario-data">Scenario Data' +
             '<p>Number of Days: ' + self.currentScenario().numOfDays + '</p>' +
             '<p>Number of Stations: ' + self.currentScenario().numOfStations + '</p>';
         $('#sim-header').append(headerHTML);
-        $('#sim-header').append('<div id="scenario-graph" class="scenario-graph">Scenario Graph</div');
+        $('#sim-header').append('<div id="scenario-graph" class="scenario-graph"></div');
+        $('#scenario-graph').append('<textarea class="scenario-label">' + text + '</textarea>');
+        $('#scenario-graph').append('<textarea id="scenario-textarea" class="scenario-textarea"></textarea>');
         for (var i = 1; i <= self.numOfStations(); i++) {
             var stationContainerID = 'station' + i + '-container';
             var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>'
@@ -115,7 +118,6 @@ var ViewModel = function () {
             $('#station-container').append(stationHTML);
             $('#' + stationContainerID).append(stationDataHTML);
             $('#' + stationContainerID).append(stationGraphHTML);
-            var text = "Day\t WIP\t     Capacity\t     Output\t     Missed"
             $('#' + stationGraphID).append('<textarea class="station-label">' + text + '</textarea>');
             $('#' + stationGraphID).append('<textarea id="station' + i + '-textarea" class="station-textarea"></textarea>');
         }
@@ -134,20 +136,23 @@ var ViewModel = function () {
         self.currentScenario().reload();
         self.currentDay(0);
         $('.station-textarea').text('');
-        $('.scenario-graph').text('');
+        $('.scenario-textarea').text('');
     }
 
     window.runProduction = function () {
         var runCalc = false;
         var day = self.currentDay();
         if (self.currentScenario()) {
-            if (!self.currentScenario().totalProduction()[self.currentDay + 1]) {
+            if (!self.currentScenario().totalCapacity()[self.currentDay + 1]) {
                 runCalc = true;
             }
         }
         if (runCalc) {
+            self.currentScenario().totalWIPS()[day] = 0;
+            self.currentScenario().totalCapacity()[day] = 0;
+            self.currentScenario().totalOutput()[day] = 0;
             self.currentScenario().totalMissedOp()[day] = 0;
-            self.currentScenario().totalProduction()[day] = 0;
+
             for (var i = 0; i < self.currentScenario().stations().length; i++) {
                 var currentStation = self.currentScenario().stations()[i];
                 var wipToAdd = 0;
@@ -164,28 +169,43 @@ var ViewModel = function () {
                     }
                 }
                 currentStation.doWork(self.currentDay(), wipToAdd);
-                self.currentScenario().totalMissedOp()[day] = self.currentScenario().totalMissedOp()[day] + currentStation.missedOp()[day];
-
-
-                var stationID = 'station' + currentStation.number + '-textarea';
-                var stationTextToAdd = '';
-                var textbox = $('#' + stationID);
-                textbox.text(self.currentDay() + '\t ' +
-                    currentStation.wipValues()[day] + '\t\t' +
-                    currentStation.productionValues()[day] + '\t\t' +
-                    currentStation.output()[day] + '\t\t' +
-                    currentStation.missedOp()[day] + '\n' + textbox.val());
             }
 
-            //set total production for the day equal to last station's output for the day
-            self.currentScenario().totalProduction()[day] =
-                self.currentScenario().stations()[self.currentScenario().stations().length - 1].output()[day];
-            self.currentDay(self.currentDay() + 1);
+            self.currentScenario().updateTotals(self.currentDay());
 
-            printTotalResults();
+            //update the GUI with new data
+            self.updateData();
+            self.currentDay(self.currentDay() + 1);
 
         }
     };
+
+    //updates the display with the most recent data
+    self.updateData = function () {
+        var day = self.currentDay();
+        var scenario = self.currentScenario();
+        for (var i = 0; i < scenario.stations().length; i++) {
+            var currentStation = scenario.stations()[i];
+            var stationID = 'station' + currentStation.number + '-textarea';
+            var stationTextToAdd = '';
+            var textbox = $('#' + stationID);
+            textbox.text(self.currentDay() + '\t ' +
+                currentStation.wipValues()[day] + '\t\t' +
+                currentStation.capacityValues()[day] + '\t\t' +
+                currentStation.output()[day] + '\t\t' +
+                currentStation.missedOp()[day] + '\n' + textbox.val());
+        }
+
+
+        var stationTextToAdd = '';
+        var textbox = $('#scenario-textarea');
+        textbox.text(day + '\t ' +
+            scenario.totalWIPS()[day] + '\t\t' +
+            scenario.totalCapacity()[day] + '\t\t' +
+            scenario.totalOutput()[day] + '\t\t' +
+            scenario.totalMissedOp()[day] + '\n' + textbox.val());
+    }
+
 
     window.finishProduction = function () {
         while (self.currentDay() <= self.numOfDays()) {
@@ -196,18 +216,20 @@ var ViewModel = function () {
     window.printTotalResults = function () {
         var totalProd = 0;
         var totalMissed = 0;
+        var totalOutput = 0;
         var totalHTMLText = '';
-        self.currentScenario().totalProduction().forEach(function (prod) {
+        self.currentScenario().totalCapacity().forEach(function (prod) {
             totalProd += prod;
         });
         self.currentScenario().totalMissedOp().forEach(function (miss) {
             totalMissed += miss;
         });
-        totalHTMLText = "Total production: " + totalProd + '\n' +
-            "Total missed op: " + totalMissed;
-        $('#scenario-graph').text(totalHTMLText);
-    }
+    };
+
+
 };
+
+
 
 //instaniate our controller
 app.viewModel = new ViewModel();
