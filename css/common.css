@@ -150,7 +150,7 @@ body {
 
 .sim-header {
     width: 100%;
-    height: 250px;
+    height: 200px;
     display: flex;
 }
 
@@ -163,7 +163,20 @@ body {
 .scenario-graph {
     width: 70%;
     height: 100%;
-    background-color: white;
+}
+
+.scenario-textarea {
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 180px;
+}
+
+.scenario-label {
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 20px;
 }
 
 .station {

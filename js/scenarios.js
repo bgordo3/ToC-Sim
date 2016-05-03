@@ -7,20 +7,20 @@ var Scenarios = [
         stations: [
             {
                 number: 1,
-                baseProduction: 5,
+                baseCapacity: 5,
                 initWIP: 4,
                 sigma: 1
                 },
             {
                 number: 2,
                 initWIP: 2,
-                baseProduction: 6,
+                baseCapacity: 6,
                 sigma: .5
                 },
             {
                 number: 3,
                 initWIP: 4,
-                baseProduction: 7,
+                baseCapacity: 7,
                 sigma: .1
                 }
             ]
@@ -47,20 +47,20 @@ var Scenarios = [
         stations: [
             {
                 number: 1,
-                baseProduction: 10,
+                baseCapacity: 10,
                 initWIP: 4,
                 sigma: 0
                 },
             {
                 number: 2,
                 initWIP: 2,
-                baseProduction: 5,
+                baseCapacity: 5,
                 sigma: 0
                 },
             {
                 number: 3,
                 initWIP: 1,
-                baseProduction: 5,
+                baseCapacity: 5,
                 sigma: 0
                 }
             ]
