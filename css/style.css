@@ -1,0 +1,6 @@
+/* Header */
+.menu-button-container {
+    visibility: hidden;
+    position: absolute;
+    left: 0;
+}
