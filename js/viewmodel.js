@@ -54,19 +54,6 @@ var ViewModel = function () {
         self.scenarioTitle("Custom Scenario");
     });
 
-    /**
-     * @description - closes menu drawer and displays info window for selected pin.
-     *                function is bound by Knockout.js framework in index.html
-     */
-    window.menuClick = function () {
-        $nav.removeClass('open');
-        self.currentScenario(this);
-        self.scenarioTitle(self.currentScenario().name);
-        $customSettings.toggle(false);
-        self.numOfStations(self.currentScenario().numOfStations);
-        self.numOfDays(self.currentScenario().numOfDays);
-        self.buildUI();
-    };
 
     /**
      * @description - loads custom scenario when 'Load Scenario' is clicked
@@ -96,39 +83,6 @@ var ViewModel = function () {
             self.currentScenario().addStation(tempStation);
         }
         self.buildUI();
-    }
-
-    self.buildUI = function () {
-        self.clearUI();
-        $('.control').removeClass("hidden");
-        var text = "Day\t WIP\t     Capacity\t     Output\t     Missed"
-        var headerHTML = '<div id="scenario-data" class="scenario-data">Scenario Data' +
-            '<p>Number of Days: ' + self.currentScenario().numOfDays + '</p>' +
-            '<p>Number of Stations: ' + self.currentScenario().numOfStations + '</p>';
-        $('#sim-header').append(headerHTML);
-        $('#sim-header').append('<div id="scenario-graph" class="scenario-graph"></div');
-        $('#scenario-graph').append('<textarea class="scenario-label">' + text + '</textarea>');
-        $('#scenario-graph').append('<textarea id="scenario-textarea" class="scenario-textarea"></textarea>');
-        for (var i = 1; i <= self.numOfStations(); i++) {
-            var stationContainerID = 'station' + i + '-container';
-            var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>'
-            var stationDataHTML = '<div id="station' + i + '-data" class="station-data">Station ' + i + ' Data</div>';
-            var stationGraphID = 'station' + i + '-graph';
-            var stationGraphHTML = '<div id="' + stationGraphID + '" class="station-graph"></div>';
-            $('#station-container').append(stationHTML);
-            $('#' + stationContainerID).append(stationDataHTML);
-            $('#' + stationContainerID).append(stationGraphHTML);
-            $('#' + stationGraphID).append('<textarea class="station-label">' + text + '</textarea>');
-            $('#' + stationGraphID).append('<textarea id="station' + i + '-textarea" class="station-textarea"></textarea>');
-        }
-    };
-
-    self.clearUI = function () {
-        $('#scenario-data').remove();
-        $('#scenario-graph').remove();
-        $('.station').remove();
-        $('.control').addClass("hidden");
-        self.currentDay(0);
     }
 
     //reset
@@ -180,32 +134,6 @@ var ViewModel = function () {
         }
     };
 
-    //updates the display with the most recent data
-    self.updateData = function () {
-        var day = self.currentDay();
-        var scenario = self.currentScenario();
-        for (var i = 0; i < scenario.stations.length; i++) {
-            var currentStation = scenario.stations[i];
-            var stationID = 'station' + currentStation.number + '-textarea';
-            var stationTextToAdd = '';
-            var textbox = $('#' + stationID);
-            textbox.text(self.currentDay() + '\t ' +
-                currentStation.wipValues[day] + '\t\t' +
-                currentStation.capacityValues[day] + '\t\t' +
-                currentStation.output[day] + '\t\t' +
-                currentStation.missedOp[day] + '\n' + textbox.val());
-        }
-
-
-        var stationTextToAdd = '';
-        var textbox = $('#scenario-textarea');
-        textbox.text(day + '\t ' +
-            scenario.totalWIPS[day] + '\t\t' +
-            scenario.totalCapacity[day] + '\t\t' +
-            scenario.totalOutput[day] + '\t\t' +
-            scenario.totalMissedOp[day] + '\n' + textbox.val());
-    }
-
 
     window.finishProduction = function () {
         while (self.currentDay() <= self.numOfDays()) {
@@ -226,10 +154,137 @@ var ViewModel = function () {
         });
     };
 
+    /**
+     * @description - closes menu drawer and displays info window for selected pin.
+     *                function is bound by Knockout.js framework in index.html
+     */
+    window.menuClick = function () {
+        $nav.removeClass('open');
+        self.currentScenario(this);
+        self.scenarioTitle(self.currentScenario().name);
+        $customSettings.toggle(false);
+        self.numOfStations(self.currentScenario().numOfStations);
+        self.numOfDays(self.currentScenario().numOfDays);
+        self.buildUI();
+    };
 
 };
+ViewModel.prototype = Object.create(ViewModel.prototype);
+
+ViewModel.prototype.buildUI = function () {
+    this.clearUI();
+    $('.control').removeClass("hidden");
+    var text = "Day\t WIP\t     Capacity\t     Output\t     Missed"
+    var headerHTML = '<div id="scenario-settings" class="scenario-settings">Scenario Data' +
+        '<p>Number of Days: ' + this.currentScenario().numOfDays + '</p>' +
+        '<p>Number of Stations: ' + this.currentScenario().numOfStations + '</p>';
+    $('#sim-header').append(headerHTML);
+    $('#sim-header').append('<div id="scenario-data" class="scenario-data"></div');
+    $('#sim-header').append('<div id="scenario-graph" class="scenario-graph"></div');
+    $('#scenario-data').append('<textarea disabled class="scenario-label">' + text + '</textarea>');
+    $('#scenario-data').append('<textarea disabled id="scenario-textarea" class="scenario-textarea"></textarea>');
+    $('#scenario-graph').append('<canvas id="scenario-canvas" class="scenario-canvas"></canvas></div>');
+
+    //create our overall scenario chart
+    this.currentScenario().graph = this.createChart('#scenario-canvas',
+        this.currentScenario().totalOutput, this.currentScenario().totalMissedOp);
 
 
+    for (var i = 1; i <= this.numOfStations(); i++) {
+        var stationContainerID = 'station' + i + '-container';
+        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>'
+        var stationSettingsHTML = '<div id="station' + i + '-settings" class="station-settings">Station ' + i + ' Data</div>';
+        var stationDataID = 'station' + i + '-data';
+        var stationGraphID = 'station' + i + '-graph';
+        var stationGraphCanvasID = 'station' + i + '-canvas';
+        var stationDataHTML = '<div id="' + stationDataID + '" class="station-data"></div>';
+        var stationGraphHTML = '<div id="' + stationGraphID + '" class="station-graph">' +
+            '<canvas id="' + stationGraphCanvasID + '" class="station-canvas"></canvas></div>';
+        $('#station-container').append(stationHTML);
+        $('#' + stationContainerID).append(stationSettingsHTML);
+        $('#' + stationContainerID).append(stationDataHTML);
+        $('#' + stationDataID).append('<textarea disabled class="station-label">' + text + '</textarea>');
+        $('#' + stationDataID).append('<textarea disabled id="station' + i + '-textarea" class="station-textarea"></textarea>');
+        $('#' + stationContainerID).append(stationGraphHTML);
+
+        var currentStation = this.currentScenario().stations[i - 1];
+        var canvas = "#" + stationGraphCanvasID;
+        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp);
+    }
+}
+
+ViewModel.prototype.createChart = function (canvas, data1, data2) {
+    var graph = new Chart($(canvas), {
+        type: 'bar',
+        data: {
+            labels: this.currentScenario().days,
+            datasets: [{
+                    label: 'Output',
+                    backgroundColor: "rgba(0, 255, 0, 0.6)",
+                    data: data1
+        },
+                {
+                    label: 'Missed Ops',
+                    backgroundColor: "rgba(255, 0, 0, 0.6)",
+                    data: data2
+        }]
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    stacked: true
+                }],
+                yAxes: [{
+                    stacked: true,
+                    ticks: {
+                        beginAtZero: true,
+                        suggestedMax: this.currentScenario().stationMax
+                    }
+            }]
+            }
+        }
+
+    });
+    return graph;
+}
+
+ViewModel.prototype.clearUI = function () {
+    $('#scenario-settings').remove();
+    $('#scenario-data').remove();
+    $('.station').remove();
+    $('.control').addClass("hidden");
+    this.currentDay(0);
+}
+
+//updates the display with the most recent data
+ViewModel.prototype.updateData = function () {
+    var day = this.currentDay();
+    var scenario = this.currentScenario();
+    scenario.days.push(day);
+    for (var i = 0; i < scenario.stations.length; i++) {
+        var currentStation = scenario.stations[i];
+        var stationID = 'station' + currentStation.number + '-textarea';
+        var stationTextToAdd = '';
+        var textbox = $('#' + stationID);
+        textbox.text(this.currentDay() + '\t ' +
+            currentStation.wipValues[day] + '\t\t' +
+            currentStation.capacityValues[day] + '\t\t' +
+            currentStation.output[day] + '\t\t' +
+            currentStation.missedOp[day] + '\n' + textbox.val());
+        currentStation.graph.update();
+    }
+
+    var stationTextToAdd = '';
+    var textbox = $('#scenario-textarea');
+    textbox.text(day + '\t ' +
+        scenario.totalWIPS[day] + '\t\t' +
+        scenario.totalCapacity[day] + '\t\t' +
+        scenario.totalOutput[day] + '\t\t' +
+        scenario.totalMissedOp[day] + '\n' + textbox.val());
+
+    scenario.graph.update();
+
+}
 
 //instaniate our controller
 app.viewModel = new ViewModel();

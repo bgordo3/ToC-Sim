@@ -2,32 +2,76 @@ var app = app || {};
 
 var Scenarios = [
     {
-        name: 'Scenario 1',
+        name: 'Unbalanced Line',
         numOfDays: 30,
         stations: [
             {
                 number: 1,
-                baseCapacity: 5,
-                initWIP: 4,
-                sigma: 1
+                baseCapacity: 7,
+                initWIP: 0,
+                sigma: 5
                 },
             {
                 number: 2,
-                initWIP: 2,
-                baseCapacity: 6,
-                sigma: .5
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 5
                 },
             {
                 number: 3,
+                baseCapacity: 3.5,
                 initWIP: 4,
+                sigma: 2.5
+                },
+            {
+                number: 4,
                 baseCapacity: 7,
-                sigma: .1
+                initWIP: 4,
+                sigma: 5
+                },
+            {
+                number: 5,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 5
                 }
             ]
         },
     {
-        name: 'Scenario 2',
-        numOfDays: 30
+        name: 'Balanced Line',
+        numOfDays: 30,
+        stations: [
+            {
+                number: 1,
+                baseCapacity: 7,
+                initWIP: 0,
+                sigma: 3
+                },
+            {
+                number: 2,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 3
+                },
+            {
+                number: 3,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 3
+                },
+            {
+                number: 4,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 5
+                },
+            {
+                number: 5,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 5
+                }
+            ]
         },
     {
         name: 'Scenario 3',
