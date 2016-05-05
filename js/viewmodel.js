@@ -143,18 +143,18 @@ var ViewModel = function () {
         var runCalc = false;
         var day = self.currentDay();
         if (self.currentScenario()) {
-            if (!self.currentScenario().totalCapacity()[self.currentDay + 1]) {
+            if (!self.currentScenario().totalCapacity[self.currentDay + 1]) {
                 runCalc = true;
             }
         }
         if (runCalc) {
-            self.currentScenario().totalWIPS()[day] = 0;
-            self.currentScenario().totalCapacity()[day] = 0;
-            self.currentScenario().totalOutput()[day] = 0;
-            self.currentScenario().totalMissedOp()[day] = 0;
+            self.currentScenario().totalWIPS[day] = 0;
+            self.currentScenario().totalCapacity[day] = 0;
+            self.currentScenario().totalOutput[day] = 0;
+            self.currentScenario().totalMissedOp[day] = 0;
 
-            for (var i = 0; i < self.currentScenario().stations().length; i++) {
-                var currentStation = self.currentScenario().stations()[i];
+            for (var i = 0; i < self.currentScenario().stations.length; i++) {
+                var currentStation = self.currentScenario().stations[i];
                 var wipToAdd = 0;
 
                 //if we are the first station, don't worry about previous station
@@ -165,7 +165,7 @@ var ViewModel = function () {
                     if (self.currentDay() == 0) {
                         wipToAdd = 0;
                     } else { //its not the first day, so we need to add previous stations work
-                        wipToAdd = self.currentScenario().stations()[i - 1].output()[day - 1];
+                        wipToAdd = self.currentScenario().stations[i - 1].output[day - 1];
                     }
                 }
                 currentStation.doWork(self.currentDay(), wipToAdd);
@@ -184,26 +184,26 @@ var ViewModel = function () {
     self.updateData = function () {
         var day = self.currentDay();
         var scenario = self.currentScenario();
-        for (var i = 0; i < scenario.stations().length; i++) {
-            var currentStation = scenario.stations()[i];
+        for (var i = 0; i < scenario.stations.length; i++) {
+            var currentStation = scenario.stations[i];
             var stationID = 'station' + currentStation.number + '-textarea';
             var stationTextToAdd = '';
             var textbox = $('#' + stationID);
             textbox.text(self.currentDay() + '\t ' +
-                currentStation.wipValues()[day] + '\t\t' +
-                currentStation.capacityValues()[day] + '\t\t' +
-                currentStation.output()[day] + '\t\t' +
-                currentStation.missedOp()[day] + '\n' + textbox.val());
+                currentStation.wipValues[day] + '\t\t' +
+                currentStation.capacityValues[day] + '\t\t' +
+                currentStation.output[day] + '\t\t' +
+                currentStation.missedOp[day] + '\n' + textbox.val());
         }
 
 
         var stationTextToAdd = '';
         var textbox = $('#scenario-textarea');
         textbox.text(day + '\t ' +
-            scenario.totalWIPS()[day] + '\t\t' +
-            scenario.totalCapacity()[day] + '\t\t' +
-            scenario.totalOutput()[day] + '\t\t' +
-            scenario.totalMissedOp()[day] + '\n' + textbox.val());
+            scenario.totalWIPS[day] + '\t\t' +
+            scenario.totalCapacity[day] + '\t\t' +
+            scenario.totalOutput[day] + '\t\t' +
+            scenario.totalMissedOp[day] + '\n' + textbox.val());
     }
 
 

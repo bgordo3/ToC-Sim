@@ -30,20 +30,20 @@ var ScenarioItem = function (data) {
 
     //initializes the scenario item.
     self.init = function () {
-        self.stations = ko.observableArray();
+        self.stations = [];
         self.name = data.name;
         self.numOfDays = data.numOfDays;
         self.numOfStations = 0;
-        self.totalWIPS = ko.observableArray(0);
-        self.totalCapacity = ko.observableArray(0);
-        self.totalOutput = ko.observableArray(0);
-        self.totalMissedOp = ko.observableArray(0);
-        self.totalFinished = ko.observableArray(0);
+        self.totalWIPS = [];
+        self.totalCapacity = [];
+        self.totalOutput = [];
+        self.totalMissedOp = [];
+        self.totalFinished = [];
 
         if (data.stations) {
             self.numOfStations = data.stations.length;
             data.stations.forEach(function (station) {
-                self.stations().push(new StationItem(station));
+                self.stations.push(new StationItem(station));
             });
         }
     };
@@ -62,16 +62,16 @@ var ScenarioItem = function (data) {
     }
 
     self.updateTotals = function (day) {
-        self.stations().forEach(function (station) {
-            self.totalWIPS()[day] += station.wipValues()[day];
-            self.totalCapacity()[day] += station.capacityValues()[day];
-            self.totalOutput()[day] += station.output()[day];
-            self.totalMissedOp()[day] += station.missedOp()[day];
+        self.stations.forEach(function (station) {
+            self.totalWIPS[day] += station.wipValues[day];
+            self.totalCapacity[day] += station.capacityValues[day];
+            self.totalOutput[day] += station.output[day];
+            self.totalMissedOp[day] += station.missedOp[day];
 
         });
 
         //set total capacity for the day equal to last station's output for the day
-        self.totalFinished()[day] = self.stations()[self.numOfStations - 1].output()[day];
+        self.totalFinished[day] = self.stations[self.numOfStations - 1].output[day];
     };
 };
 
@@ -90,7 +90,7 @@ var StationItem = function (data) {
 
     //set inventory data if defined in scenario
     if (data.initWIP) {
-        self.wipValues()[0] = data.initWIP;
+        self.wipValues[0] = data.initWIP;
     }
 
     //set baseCapacity data if defined in scenario
@@ -107,7 +107,7 @@ var StationItem = function (data) {
     self.calcCapacity = function (day) {
         var random = (Math.random() * self.sigma() * 2) - self.sigma();
         var todaysCapacity = self.baseCapacity() + self.baseCapacity() * random;
-        self.capacityValues()[day] = Math.round(todaysCapacity);
+        self.capacityValues[day] = Math.round(todaysCapacity);
     }
 
 
@@ -117,24 +117,24 @@ var StationItem = function (data) {
         //first we need to calcuate or capacity for the day
         self.calcCapacity(day);
 
-        var todayCapacity = self.capacityValues()[day];
+        var todayCapacity = self.capacityValues[day];
         //if we're station 1, our WIP is our capacity
         if (self.number == 1) {
-            self.wipValues()[day] = self.capacityValues()[day];
+            self.wipValues[day] = self.capacityValues[day];
         } else {
-            self.wipValues()[day] = self.wipValues()[day] + wipToAdd;
+            self.wipValues[day] = self.wipValues[day] + wipToAdd;
         }
 
 
 
-        if (self.wipValues()[day] >= todayCapacity) {
-            self.output()[day] = todayCapacity;
-            self.missedOp()[day] = 0;
-            self.wipValues()[day + 1] = self.wipValues()[day] - todayCapacity;
+        if (self.wipValues[day] >= todayCapacity) {
+            self.output[day] = todayCapacity;
+            self.missedOp[day] = 0;
+            self.wipValues[day + 1] = self.wipValues[day] - todayCapacity;
         } else {
-            self.output()[day] = self.wipValues()[day];
-            self.missedOp()[day] = todayCapacity - self.wipValues()[day];
-            self.wipValues()[day + 1] = 0;
+            self.output[day] = self.wipValues[day];
+            self.missedOp[day] = todayCapacity - self.wipValues[day];
+            self.wipValues[day + 1] = 0;
         }
     };
 
