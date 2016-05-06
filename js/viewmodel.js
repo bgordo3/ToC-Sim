@@ -202,7 +202,7 @@ ViewModel.prototype.buildUI = function () {
 
     //create our overall scenario chart
     this.currentScenario().graph = this.createChart('#scenario-canvas',
-        this.currentScenario().totalOutput, this.currentScenario().totalMissedOp, this.currentScenario().totalWIPS);
+        this.currentScenario().totalOutput, this.currentScenario().totalMissedOp, this.currentScenario().totalWIPS, []);
 
 
     for (var i = 1; i <= this.numOfStations(); i++) {
@@ -222,11 +222,11 @@ ViewModel.prototype.buildUI = function () {
 
         var currentStation = this.currentScenario().stations[i - 1];
         var canvas = "#" + stationGraphCanvasID;
-        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wipValues);
+        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wipValues, currentStation.totalEff);
     }
 }
 
-ViewModel.prototype.createChart = function (canvas, data1, data2, data3) {
+ViewModel.prototype.createChart = function (canvas, data1, data2, data3, data4) {
     var graph = new Chart($(canvas), {
         type: 'bar',
         data: {
@@ -253,6 +253,19 @@ ViewModel.prototype.createChart = function (canvas, data1, data2, data3) {
                     pointHoverBackgroundColor: '#EC932F',
                     pointHoverBorderColor: '#EC932F',
                     yAxisID: 'y-axis-2'
+            },
+                {
+                    label: "Eff",
+                    type: 'line',
+                    data: data4,
+                    fill: false,
+                    borderColor: '#006',
+                    backgroundColor: '#006',
+                    pointBorderColor: '#006',
+                    pointBackgroundColor: '#006',
+                    pointHoverBackgroundColor: '#006',
+                    pointHoverBorderColor: '#006',
+                    yAxisID: 'y-axis-3'
             }]
         },
         options: {
@@ -263,24 +276,42 @@ ViewModel.prototype.createChart = function (canvas, data1, data2, data3) {
                     stacked: true
                 }],
                 yAxes: [{
-                    stacked: true,
-                    ticks: {
-                        beginAtZero: true,
-                        suggestedMax: this.currentScenario().stationMax
-                    }
+                        stacked: true,
+                        ticks: {
+                            beginAtZero: true,
+                            suggestedMax: (this.currentScenario().stationMax * 1.2)
+                        }
             }, {
-                    type: "linear",
-                    display: true,
-                    position: "right",
-                    id: "y-axis-2",
-                    gridLines: {
-                        display: false
-                    },
-                    labels: {
-                        show: true,
+                        type: "linear",
+                        display: true,
+                        position: "right",
+                        id: "y-axis-2",
+                        gridLines: {
+                            display: false
+                        },
+                        labels: {
+                            show: true,
 
-                    }
-            }]
+                        }
+            }, {
+
+                        type: "linear",
+                        display: true,
+                        position: "left",
+                        id: "y-axis-3",
+                        gridLines: {
+                            display: false
+                        },
+                        labels: {
+                            show: true,
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                            suggestedMax: (1.1)
+                        }
+            }
+                    ]
+
 
             }
         }

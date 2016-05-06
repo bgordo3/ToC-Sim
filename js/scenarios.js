@@ -74,12 +74,76 @@ var Scenarios = [
             ]
         },
     {
-        name: 'Scenario 3',
-        numOfDays: 30
+        name: 'One not Lean',
+        numOfDays: 30,
+        stations: [
+            {
+                number: 1,
+                baseCapacity: 7,
+                initWIP: 0,
+                sigma: 2
+                },
+            {
+                number: 2,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 2
+                },
+            {
+                number: 3,
+                baseCapacity: 5,
+                initWIP: 4,
+                sigma: 5
+                },
+            {
+                number: 4,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 2
+                },
+            {
+                number: 5,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 2
+                }
+            ]
         },
     {
-        name: 'Scenario 4',
-        numOfDays: 30
+        name: 'All stations are bad',
+        numOfDays: 30,
+        stations: [
+            {
+                number: 1,
+                baseCapacity: 7,
+                initWIP: 0,
+                sigma: 7
+                },
+            {
+                number: 2,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 7
+                },
+            {
+                number: 3,
+                baseCapacity: 5,
+                initWIP: 4,
+                sigma: 7
+                },
+            {
+                number: 4,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 7
+                },
+            {
+                number: 5,
+                baseCapacity: 7,
+                initWIP: 4,
+                sigma: 7
+                }
+            ]
         },
     {
         name: "Scenario 5",

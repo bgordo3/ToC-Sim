@@ -96,6 +96,8 @@ var StationItem = function (data) {
     self.output = [];
     self.wipValues = [];
     self.missedOp = [];
+    self.eff = [];
+    self.totalEff = [];
     self.graph = null;
     //set inventory data if defined in scenario
     if (data.initWIP) {
@@ -120,7 +122,13 @@ var StationItem = function (data) {
         if (min < 0) {
             min = 0;
         }
-        var output = genNormal(min, max);
+        var output = 0;
+
+        if (self.number == 3) {
+            output = genNormal(min, max, 1);
+        } else {
+            output = genNormal(min, max, 2);
+        }
         self.capacityValues[day] = output;
     }
 
@@ -151,16 +159,27 @@ var StationItem = function (data) {
             self.missedOp[day] = todayCapacity - self.wipValues[day];
             self.wipValues[day + 1] = 0;
         }
+
+        var tempOutput = 0;
+        var tempCap = 0;
+        var tempEffAvg = 0;
+
+        self.eff[day] = self.output[day] / self.capacityValues[day];
+        self.eff.forEach(function (val) {
+            tempEffAvg += val
+        });
+        tempEffAvg = tempEffAvg / self.eff.length;
+        self.totalEff[day] = tempEffAvg;
     };
 
 };
 
-var genNormal = function (a, b) {
+var genNormal = function (a, b, c) {
     var total = 0;
     var capacity = 0;
-    for (var i = 0; i < 10; i++) {
+    for (var i = 1; i <= c; i++) {
         capacity = (Math.random() * (b - a + 1) + a);
         total += capacity;
     }
-    return Math.floor(total / 10);
+    return Math.floor(total / c);
 };
