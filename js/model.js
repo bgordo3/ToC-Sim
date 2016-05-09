@@ -42,6 +42,9 @@ var ScenarioItem = function (data) {
         self.totalOutput = [];
         self.totalMissedOp = [];
         self.totalFinished = [];
+        self.totalEff = []
+        self.cummOutput = 0;
+        self.cummCapacity = 0;
         self.graph = null;
 
 
@@ -86,6 +89,16 @@ var ScenarioItem = function (data) {
 
         //set total capacity for the day equal to last station's output for the day
         self.totalFinished[day] = self.stations[self.numOfStations - 1].output[day];
+
+        var tempEffAvg = 0;
+
+        self.cummCapacity += self.totalCapacity[day];
+        self.cummOutput += self.totalOutput[day];
+        self.totalEff[day] = self.cummOutput / self.cummCapacity;
+
+
+
+
     };
 
 };

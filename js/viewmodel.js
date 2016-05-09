@@ -328,7 +328,7 @@ ViewModel.prototype.buildUI = function () {
 
     //create our overall scenario chart
     this.currentScenario().graph = this.createChart('#scenario-canvas',
-        this.currentScenario().totalOutput, this.currentScenario().totalMissedOp, this.currentScenario().totalWIPS, []);
+        this.currentScenario().totalOutput, this.currentScenario().totalMissedOp, this.currentScenario().totalWIPS, this.currentScenario().totalEff);
 
 
     for (var i = 1; i <= this.numOfStations(); i++) {
