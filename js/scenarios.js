@@ -9,31 +9,36 @@ var Scenarios = [
                 number: 1,
                 baseCapacity: 7,
                 initWIP: 0,
-                capRange: 5
+                capRange: 5,
+                varFactor: 2
                 },
             {
                 number: 2,
                 baseCapacity: 7,
                 initWIP: 4,
-                capRange: 5
+                capRange: 5,
+                varFactor: 2
                 },
             {
                 number: 3,
                 baseCapacity: 3.5,
                 initWIP: 4,
-                capRange: 2.5
+                capRange: 2.5,
+                varFactor: 1
                 },
             {
                 number: 4,
                 baseCapacity: 7,
                 initWIP: 4,
-                capRange: 5
+                capRange: 5,
+                varFactor: 2
                 },
             {
                 number: 5,
                 baseCapacity: 7,
                 initWIP: 4,
-                capRange: 5
+                capRange: 5,
+                varFactor: 2
                 }
             ]
         },

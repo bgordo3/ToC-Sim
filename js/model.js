@@ -44,14 +44,15 @@ var ScenarioItem = function (data) {
         self.totalFinished = [];
         self.graph = null;
 
+
         if (data.stations) {
             data.stations.forEach(function (station) {
                 self.numOfStations = data.stations.length;
                 var tempStation = new StationItem(station);
                 self.stations.push(tempStation);
 
-                if ((tempStation.baseCapacity() + tempStation.capRange()) > self.maxOutput) {
-                    self.maxOutput = (tempStation.baseCapacity() + tempStation.capRange());
+                if (tempStation.baseCapacity + tempStation.capRange > self.maxOutput) {
+                    self.maxOutput = (tempStation.baseCapacity + tempStation.capRange);
                 }
             });
         }
@@ -95,8 +96,9 @@ var StationItem = function (data) {
     var self = this;
     self.number = data.number;
     self.title = 'Station #' + self.number;
-    self.baseCapacity = ko.observable(1);
-    self.capRange = ko.observable(0);
+    self.baseCapacity = 10;
+    self.capRange = 5;
+    self.varFactor = 1;
     self.capacityValues = [];
     self.output = [];
     self.wipValues = [];
@@ -112,29 +114,30 @@ var StationItem = function (data) {
 
     //set baseCapacity data if defined in scenario
     if (data.baseCapacity) {
-        self.baseCapacity(data.baseCapacity);
+        self.baseCapacity = data.baseCapacity;
     }
 
     //set capRange if defined in scenario
     if (data.capRange) {
-        self.capRange(data.capRange);
+        self.capRange = data.capRange;
+    }
+
+    if (data.varFactor) {
+        self.varFactor = data.varFactor;
     }
 
 
     //calculations station capacity for the day based on baseCapacity and Sigma
     self.calcCapacity = function (day) {
-        var min = self.baseCapacity() - self.capRange();
-        var max = self.baseCapacity() + self.capRange();
+        var min = self.baseCapacity - self.capRange;
+        var max = self.baseCapacity + self.capRange;
+        var max = self.baseCapacity + self.capRange;
+        var randOutput = 0;
         if (min < 0) {
             min = 0;
         }
-        var randOutput = 0;
 
-        if (self.number == 3) {
-            randOutput = genNormal(min, max, 1);
-        } else {
-            randOutput = genNormal(min, max, 2);
-        }
+        randOutput = genNormal(min, max, self.varFactor);
         self.capacityValues[day] = randOutput;
     }
 
@@ -142,32 +145,43 @@ var StationItem = function (data) {
 
     //does the stations work for the day. sets output, next day's WIP, and missed Opportunities
     self.doWork = function (day, wipToAdd) {
-        //first we need to calcuate or capacity for the day
+        console.log(self.title);
         self.calcCapacity(day);
-
         var todayCapacity = self.capacityValues[day];
+        console.log(" Wip before add: " + self.wipValues[day]);
+        //first we need to calcuate or capacity for the day
+
         //if we're station 1, our WIP is our capacity
         if (self.number == 1) {
             self.wipValues[day] = todayCapacity;
         } else {
-            self.wipValues[day] = self.wipValues[day] + wipToAdd;
+            if (day != 0) {
+                self.wipValues[day] = self.wipValues[day] + wipToAdd;
+            }
         }
+        console.log(" Wip after add: " + self.wipValues[day]);
+        console.log(" Cap: " + todayCapacity);
 
+        //if the new wip for the day is greater than today's capacity,  our output is equal to our capacity,
+        //and we have 0 missed ops.  The starting WIP for tomorrow will be what's left over.
         if (self.wipValues[day] >= todayCapacity) {
             self.output[day] = todayCapacity;
             self.missedOp[day] = 0;
             self.wipValues[day + 1] = self.wipValues[day] - todayCapacity;
 
-
+            //otherwise, our output is limited by our wip for the day, and we have 0 our missed ops is equal to 
+            // today's capacity minus our WIP.    
         } else {
             self.output[day] = self.wipValues[day];
-
             self.missedOp[day] = todayCapacity - self.wipValues[day];
             self.wipValues[day + 1] = 0;
         }
         if (self.wipValues[day] > self.maxWIP) {
             self.maxWIP = self.wipValues[day];
         }
+        console.log(" Output: " + self.output[day]);
+        console.log(" Missed: " + self.missedOp[day]);
+
 
         var tempEffAvg = 0;
 
