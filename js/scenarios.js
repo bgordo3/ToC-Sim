@@ -9,31 +9,31 @@ var Scenarios = [
                 number: 1,
                 baseCapacity: 7,
                 initWIP: 0,
-                sigma: 5
+                capRange: 5
                 },
             {
                 number: 2,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 5
+                capRange: 5
                 },
             {
                 number: 3,
                 baseCapacity: 3.5,
                 initWIP: 4,
-                sigma: 2.5
+                capRange: 2.5
                 },
             {
                 number: 4,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 5
+                capRange: 5
                 },
             {
                 number: 5,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 5
+                capRange: 5
                 }
             ]
         },
@@ -45,31 +45,31 @@ var Scenarios = [
                 number: 1,
                 baseCapacity: 7,
                 initWIP: 0,
-                sigma: 3
+                capRange: 3
                 },
             {
                 number: 2,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 3
+                capRange: 3
                 },
             {
                 number: 3,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 3
+                capRange: 3
                 },
             {
                 number: 4,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 5
+                capRange: 5
                 },
             {
                 number: 5,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 5
+                capRange: 5
                 }
             ]
         },
@@ -81,31 +81,31 @@ var Scenarios = [
                 number: 1,
                 baseCapacity: 7,
                 initWIP: 0,
-                sigma: 2
+                capRange: 2
                 },
             {
                 number: 2,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 2
+                capRange: 2
                 },
             {
                 number: 3,
                 baseCapacity: 5,
                 initWIP: 4,
-                sigma: 5
+                capRange: 5
                 },
             {
                 number: 4,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 2
+                capRange: 2
                 },
             {
                 number: 5,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 2
+                capRange: 2
                 }
             ]
         },
@@ -117,31 +117,31 @@ var Scenarios = [
                 number: 1,
                 baseCapacity: 7,
                 initWIP: 0,
-                sigma: 7
+                capRange: 7
                 },
             {
                 number: 2,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 7
+                capRange: 7
                 },
             {
                 number: 3,
                 baseCapacity: 5,
                 initWIP: 4,
-                sigma: 7
+                capRange: 7
                 },
             {
                 number: 4,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 7
+                capRange: 7
                 },
             {
                 number: 5,
                 baseCapacity: 7,
                 initWIP: 4,
-                sigma: 7
+                capRange: 7
                 }
             ]
         },
@@ -157,19 +157,19 @@ var Scenarios = [
                 number: 1,
                 baseCapacity: 10,
                 initWIP: 4,
-                sigma: 0
+                capRange: 0
                 },
             {
                 number: 2,
                 initWIP: 2,
                 baseCapacity: 5,
-                sigma: 0
+                capRange: 0
                 },
             {
                 number: 3,
                 initWIP: 1,
                 baseCapacity: 5,
-                sigma: 0
+                capRange: 0
                 }
             ]
         }

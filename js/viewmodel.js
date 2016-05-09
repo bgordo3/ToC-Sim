@@ -24,6 +24,7 @@ var ViewModel = function () {
     self.numOfStations = ko.observable(5);
     self.numOfDays = ko.observable(30);
     self.currentDay = ko.observable(0);
+    self.finishProd = false;
 
     //populate locations observable container with data from model
     self.model.getAllScenarios().forEach(function (scen) {
@@ -69,7 +70,6 @@ var ViewModel = function () {
             numOfDays: self.numOfDays(),
         };
         var scenario = new ScenarioItem(scenarioData);
-        self.currentScenario(scenario);
 
         //create stations with default data
         for (var i = 1; i <= self.numOfStations(); i++) {
@@ -77,20 +77,21 @@ var ViewModel = function () {
                 number: i,
                 initWIP: 10,
                 baseCapacity: 10,
-                sigma: 0
+                capRange: 0
             };
             var tempStation = new StationItem(data);
-            self.currentScenario().addStation(tempStation);
+            scenario.addStation(tempStation);
         }
-        self.buildUI();
+        self.loadScenario(scenario);
     }
 
     //reset
     window.reload = function () {
-        self.currentScenario().reload();
         self.currentDay(0);
-        $('.station-textarea').text('');
-        $('.scenario-textarea').text('');
+        self.currentScenario().reload();
+        self.clearUI();
+        self.buildUI();
+
     }
 
     window.runProduction = function () {
@@ -122,21 +123,22 @@ var ViewModel = function () {
                         wipToAdd = self.currentScenario().stations[i - 1].output[day - 1];
                     }
                 }
+
                 currentStation.doWork(self.currentDay(), wipToAdd);
             }
 
             self.currentScenario().updateTotals(self.currentDay());
-
             //update the GUI with new data
             self.updateData();
             self.currentDay(self.currentDay() + 1);
-
         }
     };
 
-
     window.finishProduction = function () {
         while (self.currentDay() <= self.numOfDays()) {
+            if (self.currentDay() == self.numOfDays) {
+                finishProduction = false;
+            }
             runProduction();
         }
     };
@@ -159,92 +161,51 @@ var ViewModel = function () {
      *                function is bound by Knockout.js framework in index.html
      */
     window.menuClick = function () {
-        $nav.removeClass('open');
-        self.currentScenario(this);
+        self.loadScenario(this);
+    };
+
+    this.loadScenario = function (scenario) {
+        if (this.$nav) {
+            self.$nav.removeClass('open');
+            self.$customSettings.toggle(false);
+        }
+        self.currentScenario(scenario);
         self.scenarioTitle(self.currentScenario().name);
-        $customSettings.toggle(false);
         self.numOfStations(self.currentScenario().numOfStations);
         self.numOfDays(self.currentScenario().numOfDays);
         self.buildUI();
     };
 
+    $(document).ready(function () {
+        self.loadScenario(self.scenarios()[0]);
+        var i = 0;
+        for (i; i < 6; i++) {
+            runProduction();
+        }
+    });
 };
+
 ViewModel.prototype = Object.create(ViewModel.prototype);
-
-ViewModel.prototype.buildUI = function () {
-    this.clearUI();
-    $('.control').removeClass("hidden");
-
-    var headerHTML = '<div id="scenario-settings" class="settings">Scenario Data' +
-        '<p>Number of Days: ' + this.currentScenario().numOfDays + '</p>' +
-        '<p>Number of Stations: ' + this.currentScenario().numOfStations + '</p>';
-    $('#sim-header').append(headerHTML);
-    /*
-    $('#sim-header').append('<div id="scenario-data" class="scenario-data">');
- 
-    $('#scenario-data').append('<div id="scenario-label" disabled class="scenario-label">' +
-        '<div class="data-column">DAY</div>' +
-        '<div class="data-column">WIP</div>' +
-        '<div class="data-column">CAPACITY</div>' +
-        '<div class="data-column">OUTPUT</div>' +
-        '<div class="data-column">MISSED</div>' +
-        '</div>');
-    $('#scenario-data').append('<div id="scenario-table" disabled class="scenario-table">' +
-        '<div id="scenario-day" class="data-column"> </div>' +
-        '<div id="scenario-wip" class="data-column"> </div>' +
-        '<div id="scenario-capacity" class="data-column"> </div>' +
-        '<div id="scenario-ouput" class="data-column"> </div>' +
-        '<div id="scenario-missed" class="data-column"> </div>' +
-        '</div>');
-*/
-    $('#sim-header').append('<div id="scenario-graph" class="graph"></div>');
-    $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
-
-    //create our overall scenario chart
-    this.currentScenario().graph = this.createChart('#scenario-canvas',
-        this.currentScenario().totalOutput, this.currentScenario().totalMissedOp, this.currentScenario().totalWIPS, []);
-
-
-    for (var i = 1; i <= this.numOfStations(); i++) {
-        var stationContainerID = 'station' + i + '-container';
-        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>'
-        var stationSettingsHTML = '<div id="station' + i + '-settings" class="settings">Station ' + i + ' Data</div>';
-        //    var stationDataID = 'station' + i + '-data';
-        var stationGraphID = 'station' + i + '-graph';
-        var stationGraphCanvasID = 'station' + i + '-canvas';
-        // var stationDataHTML = '<div id="' + stationDataID + '" class="station-data"></div>';
-        var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
-            '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
-        $('#station-container').append(stationHTML);
-        $('#' + stationContainerID).append(stationSettingsHTML);
-        // $('#' + stationContainerID).append(stationDataHTML);
-        $('#' + stationContainerID).append(stationGraphHTML);
-
-        var currentStation = this.currentScenario().stations[i - 1];
-        var canvas = "#" + stationGraphCanvasID;
-        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wipValues, currentStation.totalEff);
-    }
-}
-
-ViewModel.prototype.createChart = function (canvas, data1, data2, data3, data4) {
+ViewModel.prototype.createChart = function (canvas, output, missed, wip, eff, maxWIP) {
     var graph = new Chart($(canvas), {
+
         type: 'bar',
         data: {
             labels: this.currentScenario().days,
             datasets: [{
                     label: 'Output',
                     backgroundColor: "rgba(0, 255, 0, 0.6)",
-                    data: data1
+                    data: output
         },
                 {
                     label: 'Missed Ops',
                     backgroundColor: "rgba(255, 0, 0, 0.6)",
-                    data: data2
+                    data: missed
         },
                 {
                     label: "WIP",
                     type: 'line',
-                    data: data3,
+                    data: wip,
                     fill: false,
                     borderColor: '#EC932F',
                     backgroundColor: '#EC932F',
@@ -257,7 +218,7 @@ ViewModel.prototype.createChart = function (canvas, data1, data2, data3, data4) 
                 {
                     label: "Eff",
                     type: 'line',
-                    data: data4,
+                    data: eff,
                     fill: false,
                     borderColor: '#006',
                     backgroundColor: '#006',
@@ -277,11 +238,15 @@ ViewModel.prototype.createChart = function (canvas, data1, data2, data3, data4) 
                 }],
                 yAxes: [{
                         stacked: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Output / Missed'
+                        },
                         ticks: {
                             beginAtZero: true,
-                            suggestedMax: (this.currentScenario().stationMax * 1.2)
-                        }
-            }, {
+                            suggestedMax: (this.currentScenario().maxOutput + .5)
+                        },
+                        }, {
                         type: "linear",
                         display: true,
                         position: "right",
@@ -292,8 +257,17 @@ ViewModel.prototype.createChart = function (canvas, data1, data2, data3, data4) 
                         labels: {
                             show: true,
 
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'WIPS'
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                            suggestedMax: (maxWIP)
                         }
-            }, {
+
+                        }, {
 
                         type: "linear",
                         display: true,
@@ -307,28 +281,67 @@ ViewModel.prototype.createChart = function (canvas, data1, data2, data3, data4) 
                         },
                         ticks: {
                             beginAtZero: true,
-                            suggestedMax: (1.1)
+                            suggestedMax: (1.0),
+                            stepSize: .2
+
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Efficiency'
                         }
-            }
+                        }
                     ]
-
-
             }
         }
 
     });
     return graph;
 }
+ViewModel.prototype.buildUI = function () {
+    this.clearUI();
+    $('.control').removeClass("hidden");
 
-ViewModel.prototype.clearUI = function () {
-    $('#settings').remove();
-    $('#scenario-data').remove();
-    $('.station').remove();
-    $('.control').addClass("hidden");
-    this.currentDay(0);
+    var headerHTML = '<div id="scenario-settings" class="settings">Scenario Data' +
+        '<p>Number of Days: ' + this.currentScenario().numOfDays + '</p>' +
+        '<p>Number of Stations: ' + this.currentScenario().numOfStations + '</p>';
+    $('#scenario-container').append(headerHTML);
+    $('#scenario-container').append('<div id="scenario-graph" class="graph"></div>');
+    $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
+
+
+    //create our overall scenario chart
+    this.currentScenario().graph = this.createChart('#scenario-canvas',
+        this.currentScenario().totalOutput, this.currentScenario().totalMissedOp, this.currentScenario().totalWIPS, []);
+
+    for (var i = 1; i <= this.numOfStations(); i++) {
+        var stationContainerID = 'station' + i + '-container';
+        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>'
+        var stationSettingsHTML = '<div id="station' + i + '-settings" class="settings">Station ' + i + ' Data' +
+            //    ' <p> Base Capacity: <input id="station' + i + 'cap" type="text" name="station' +
+            //    i + 'cap"></p>' +
+            '</div>';
+        var stationGraphID = 'station' + i + '-graph';
+        var stationGraphCanvasID = 'station' + i + '-canvas';
+        var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
+            '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
+        $('#station-container').append(stationHTML);
+        $('#' + stationContainerID).append(stationSettingsHTML);
+        $('#' + stationContainerID).append(stationGraphHTML);
+
+        var currentStation = this.currentScenario().stations[i - 1];
+        var canvas = "#" + stationGraphCanvasID;
+        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wipValues, currentStation.totalEff);
+    }
 }
+ViewModel.prototype.clearUI = function () {
+        $('.settings').remove();
+        $('.graph').remove();
+        $('.station').remove();
+        $('.canvas').remove();
+        $('.control').addClass("hidden");
 
-//updates the display with the most recent data
+    }
+    //updates the display with the most recent data
 ViewModel.prototype.updateData = function () {
     var day = this.currentDay();
     var scenario = this.currentScenario();
@@ -336,31 +349,16 @@ ViewModel.prototype.updateData = function () {
 
     for (var i = 0; i < scenario.stations.length; i++) {
         var currentStation = scenario.stations[i];
-        /*
-           
-            var stationID = 'station' + currentStation.number + '-textarea';
-            var stationTextToAdd = '';
-            var textbox = $('#' + stationID);
-            textbox.text(this.currentDay() + '\t ' +
-                currentStation.wipValues[day] + '\t\t' +
-                currentStation.capacityValues[day] + '\t\t' +
-                currentStation.output[day] + '\t\t' +
-                currentStation.missedOp[day] + '\n' + textbox.val
-                */
-        currentStation.graph.update();
-    }
-    /*
-        var stationTextToAdd = '';
-        var dayText = $('#scenario-day').text();
-        var wipText = $('#scenario-wip').text();
-        var capacityText = $('#scenario-capacity').text();
-        var outputText = $('#scenario-output').text();
-        var missedText = $('#scenario-missed').text();
-        $('#scenario-day').text(this.currentScenario().days[day] + '\n' + $('#scenario-day').text());
-    */
-    scenario.graph.update();
+        currentStation.graph.options.scales.yAxes[1].ticks.suggestedMax = (scenario.maxStationWIP);
 
+        if (!self.finishProd) {
+            currentStation.graph.update();
+        }
+    }
+
+    scenario.graph.update();
 }
+
 
 //instaniate our controller
 app.viewModel = new ViewModel();
