@@ -90,7 +90,7 @@ var StationItem = function (data) {
     }
 
     self.calcValue = function (day, valueOfWip) {
-        self.prodValue[day] = self.output[day] * self.unitValue;
+        self.prodValue[day] = parseInt(self.output[day] * self.unitValue);
         self.wipValue[day] = self.wip[day] * valueOfWip;
     }
 

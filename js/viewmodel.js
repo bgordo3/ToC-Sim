@@ -57,6 +57,83 @@ var ViewModel = function () {
         self.scenarioTitle("Custom Scenario");
     });
 
+    window.changeGraph = function () {
+        var dataToGraph = null;
+
+        //remove and re-add canvases to delete old chart.
+        $('#scenario-canvas').remove();
+        $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
+        self.currentScenario.stations.forEach(function (station) {
+            $('#station' + station.number + '-canvas').remove();
+            $('#station' + station.number + '-graph').append(
+                '<canvas id="station' + station.number + '-canvas" class="canvas"></canvas></div>');
+        });
+
+
+        switch ($('#graph-option').val()) {
+        case 'Production Value':
+            self.currentScenario.graph = self.createChart('#scenario-canvas',
+                self.currentScenario.totalOutput,
+                self.currentScenario.totalMissedOp,
+                self.currentScenario.totalWIP,
+                self.currentScenario.totalProdValue);
+            self.currentScenario.stations.forEach(function (station) {
+                station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.output,
+                    station.missedOp,
+                    station.wip,
+                    station.prodValue);
+            });
+
+            break;
+        case 'WIP Inventory Value':
+            self.currentScenario.graph = self.createChart('#scenario-canvas',
+                self.currentScenario.totalOutput,
+                self.currentScenario.totalMissedOp,
+                self.currentScenario.totalWIP,
+                self.currentScenario.totalWipValue);
+            self.currentScenario.stations.forEach(function (station) {
+                station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.output,
+                    station.missedOp,
+                    station.wip,
+                    station.wipValue);
+            });
+            break;
+        case 'Efficiency':
+            self.currentScenario.graph = self.createChart('#scenario-canvas',
+                self.currentScenario.totalOutput,
+                self.currentScenario.totalMissedOp,
+                self.currentScenario.totalWIP,
+                self.currentScenario.totalEff);
+            self.currentScenario.stations.forEach(function (station) {
+                station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.output,
+                    station.missedOp,
+                    station.wip,
+                    station.totalEff);
+            });
+            break;
+        case 'none':
+        default:
+            console.log(self.currentScenario.graph);
+            self.currentScenario.graph = self.createChart('#scenario-canvas ',
+                self.currentScenario.totalOutput,
+                self.currentScenario.totalMissedOp,
+                self.currentScenario.totalWIP,
+                null);
+            self.currentScenario.stations.forEach(function (station) {
+                station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.output,
+                    station.missedOp,
+                    station.wip,
+                    null);
+            });
+            break;
+        }
+
+    }
+
 
     /**
      * @description - loads custom scenario when 'Load Scenario' is clicked
@@ -110,7 +187,8 @@ var ViewModel = function () {
             self.currentScenario.totalCapacity[day] = 0;
             self.currentScenario.totalOutput[day] = 0;
             self.currentScenario.totalMissedOp[day] = 0;
-            self.currentScenario.totalMissedOp[day] = 0;
+            self.currentScenario.totalProdValue[day] = 0;
+            self.currentScenario.totalWipValue[day] = 0;
 
             for (var i = 0; i < self.currentScenario.stations.length; i++) {
                 var j = i + 1;
@@ -205,16 +283,46 @@ var ViewModel = function () {
 };
 
 ViewModel.prototype = Object.create(ViewModel.prototype);
-ViewModel.prototype.createChart = function (canvas, output, missed, wip, eff) {
+ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData) {
     var graph = null;
-    var data = {
-        axisLabel: 'Eff',
-        axisMax: 1.2,
-        axisStep: .2,
-        dataLabel: 'Eff',
-        dataType: 'line',
-        optData: eff
+
+    switch ($('#graph-option').val()) {
+    case 'Production Value':
+        var data = {
+            axisLabel: 'Production Value',
+            axisMax: 10,
+            axisStep: 1,
+            dataLabel: 'Production Value',
+            dataType: 'line',
+            optData: optData
+        };
+        break;
+    case 'WIP Inventory Value':
+        var data = {
+            axisLabel: 'WIP Value',
+            axisMax: 10,
+            axisStep: 1,
+            dataLabel: 'WIP Value',
+            dataType: 'line',
+            optData: optData
+        };
+        break;
+    case 'Efficiency':
+        var data = {
+            axisLabel: 'Eff',
+            axisMax: 1.2,
+            axisStep: .2,
+            dataLabel: 'Eff',
+            dataType: 'line',
+            optData: optData
+        }
+        break;
+    case 'none':
+    default:
+        data = null;
+        break;
     }
+
     graph = chartHelper(canvas, output, missed, wip, data);
     return graph;
 
@@ -227,13 +335,22 @@ ViewModel.prototype.buildUI = function () {
         '<p>Number of Days: ' + this.currentScenario.numOfDays + '</p>' +
         '<p>Number of Stations: ' + this.currentScenario.numOfStations + '</p>';
     $('#scenario-container').append(headerHTML);
+    $('#scenario-container').append('<div id="graph-settings" class="graph-settings">' +
+        'Graph Optional Line: ' +
+        '<select id="graph-option" onchange="changeGraph()">' +
+        '<option value="None">None</option>' +
+        '<option value="Efficiency">Efficiency</option>' +
+        '<option value="WIP Inventory Value">WIP Inventory Value</option>' +
+        '<option value="Production Value">Production Value</option>' +
+        '</select>');
     $('#scenario-container').append('<div id="scenario-graph" class="graph"></div>');
     $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
 
 
     //create our overall scenario chart
-    this.currentScenario.graph = this.createChart('#scenario-canvas',
-        this.currentScenario.totalOutput, this.currentScenario.totalMissedOp, this.currentScenario.totalWIP, this.currentScenario.totalEff);
+
+    this.currentScenario.graph = this.createChart('#scenario-canvas', this.currentScenario.totalOutput, this.currentScenario.totalMissedOp, this.currentScenario.totalWIP, null);
+
 
 
     for (var i = 1; i <= this.numOfStations(); i++) {
@@ -265,7 +382,8 @@ ViewModel.prototype.buildUI = function () {
         $('#' + varID).val(currentStation.varFactor);
         $('#' + wipID).val(currentStation.wip[this.currentDay()]);
         var canvas = "#" + stationGraphCanvasID;
-        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, currentStation.totalEff);
+        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, null);
+
     }
 }
 ViewModel.prototype.clearUI = function () {

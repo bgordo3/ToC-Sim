@@ -83,14 +83,12 @@ var ScenarioItem = function (data) {
             self.totalCapacity[day] += station.capacity[day];
             self.totalOutput[day] += station.output[day];
             self.totalMissedOp[day] += station.missedOp[day];
+            self.totalProdValue[day] += station.prodValue[day];
+            self.totalWipValue[day] += station.wipValue[day];
 
             if (station.maxWIP > self.maxStationWIP) {
                 self.maxStationWIP = station.maxWIP;
             }
-            self.totalProdValue += station.prodValue[day];
-            self.totalWipValue += station.wipValue[day];
-
-
         });
 
         //set total capacity for the day equal to last station's output for the day
