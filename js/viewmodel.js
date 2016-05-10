@@ -26,9 +26,11 @@ var ViewModel = function () {
     self.currentDay = ko.observable(0);
     self.finishProd = false;
 
-    //populate locations observable container with data from model
-    self.model.getAllScenarios().forEach(function (scen) {
-        self.scenarios.push(new ScenarioItem(scen));
+    //populate locations observable container with data from model. We first create a blank scenario object,
+    //then initialize it with the data our scenario definitions.
+    this.model.getAllScenarios().forEach(function (scen) {
+        var tempScenario = new ScenarioItem(scen);
+        self.scenarios.push(tempScenario);
     });
 
     /**
