@@ -28,6 +28,25 @@ var ScenarioItem = function (data) {
     'use strict';
     var self = this;
 
+    //adds a station to our array of stations
+    self.addStation = function (station) {
+        self.stations.push(station);
+        self.numOfStations = self.numOfStations + 1;
+    }
+
+    //loads stations to the scenario
+    self.addStations = function (stations) {
+        stations.forEach(function (station) {
+            self.numOfStations = stations.length;
+            var tempStation = new StationItem(station);
+            self.stations.push(tempStation);
+
+            if (tempStation.baseCapacity + tempStation.capRange > self.maxOutput) {
+                self.maxOutput = (tempStation.baseCapacity + tempStation.capRange);
+            }
+        });
+    }
+
     //initializes the scenario item.
     self.init = function () {
         self.stations = [];
@@ -47,26 +66,22 @@ var ScenarioItem = function (data) {
         self.cummCapacity = 0;
         self.graph = null;
 
-
+        //load stations to this scenario if they are defined
         if (data.stations) {
-            data.stations.forEach(function (station) {
-                self.numOfStations = data.stations.length;
-                var tempStation = new StationItem(station);
-                self.stations.push(tempStation);
-
-                if (tempStation.baseCapacity + tempStation.capRange > self.maxOutput) {
-                    self.maxOutput = (tempStation.baseCapacity + tempStation.capRange);
-                }
-            });
+            self.addStations(data.stations);
         }
     };
 
     self.init();
 
-    //adds a station to our array of stations
-    self.addStation = function (station) {
-        self.stations.push(station);
-        self.numOfStations = self.numOfStations + 1;
+
+
+    //calculates the systems efficiency for the day based on the systems cumlative capacity and cumlative output
+    self.calcEff = function (day) {
+        var tempEffAvg = 0;
+        self.cummCapacity += self.totalCapacity[day];
+        self.cummOutput += self.totalOutput[day];
+        self.totalEff[day] = self.cummOutput / self.cummCapacity;
     }
 
     //re-initializes this scenario
@@ -74,6 +89,7 @@ var ScenarioItem = function (data) {
         self.init()
     }
 
+    //update totals for the day based on each station
     self.updateTotals = function (day) {
         self.stations.forEach(function (station) {
             self.totalWIPS[day] += station.wipValues[day];
@@ -89,15 +105,8 @@ var ScenarioItem = function (data) {
 
         //set total capacity for the day equal to last station's output for the day
         self.totalFinished[day] = self.stations[self.numOfStations - 1].output[day];
-
-        var tempEffAvg = 0;
-
-        self.cummCapacity += self.totalCapacity[day];
-        self.cummOutput += self.totalOutput[day];
-        self.totalEff[day] = self.cummOutput / self.cummCapacity;
-
-
-
+        //calculate overall effeciency
+        self.calcEff(day);
 
     };
 
