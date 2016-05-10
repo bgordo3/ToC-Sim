@@ -1,4 +1,4 @@
-/*global $,ko, Scenarios */
+/*global $, Scenarios */
 var app = app || {};
 
 
@@ -6,22 +6,27 @@ var app = app || {};
 var StationItem = function (data) {
     'use strict';
     var self = this;
-    self.number = data.number;
-    self.title = 'Station #' + self.number;
+    self.capacity = [];
+    self.eff = [];
+    self.wipValue = [];
+    self.missedOp = [];
+    self.output = [];
+    self.prodValue = [];
+    self.totalEff = [];
+    self.wip = [];
+
     self.baseCapacity = 10;
     self.capRange = 5;
-    self.varFactor = 1;
-    self.capacityValues = [];
-    self.output = [];
-    self.wipValues = [];
-    self.maxWIP = 0;
-    self.missedOp = [];
-    self.eff = [];
-    self.totalEff = [];
     self.graph = null;
+    self.maxWIP = 0;
+    self.number = data.number;
+    self.title = 'Station #' + self.number;
+    self.unitValue = data.number;
+    self.varFactor = 1;
+
     //set inventory data if defined in scenario
     if (data.initWIP) {
-        self.wipValues[0] = data.initWIP;
+        self.wip[0] = data.initWIP;
     }
 
     //set baseCapacity data if defined in scenario
@@ -32,6 +37,10 @@ var StationItem = function (data) {
     //set capRange if defined in scenario
     if (data.capRange) {
         self.capRange = data.capRange;
+    }
+
+    if (data.unitValue) {
+        self.unitValue = data.unitValue;
     }
 
     if (data.varFactor) {
@@ -50,29 +59,29 @@ var StationItem = function (data) {
         }
 
         randOutput = genNormal(min, max, self.varFactor);
-        self.capacityValues[day] = randOutput;
+        self.capacity[day] = randOutput;
     }
 
     self.calcWip = function (day, wipToAdd) {
         //if we're station 1, our WIP is our capacity
         if (self.number == 1) {
-            self.wipValues[day] = self.capacityValues[day];
+            self.wip[day] = self.capacity[day];
         } else {
             if (day != 0) {
-                self.wipValues[day] = self.wipValues[day] + wipToAdd;
+                self.wip[day] = self.wip[day] + wipToAdd;
             }
         }
 
         //update our our max wip to update the graph.
         //TODO: refactor out to the controller
-        if (self.wipValues[day] > self.maxWIP) {
-            self.maxWIP = self.wipValues[day];
+        if (self.wip[day] > self.maxWIP) {
+            self.maxWIP = self.wip[day];
         }
     }
 
     self.calcEff = function (day) {
         var tempEffAvg = 0;
-        self.eff[day] = self.output[day] / self.capacityValues[day];
+        self.eff[day] = self.output[day] / self.capacity[day];
         self.eff.forEach(function (val) {
             tempEffAvg += val
         });
@@ -80,37 +89,45 @@ var StationItem = function (data) {
         self.totalEff[day] = tempEffAvg;
     }
 
+    self.calcValue = function (day, valueOfWip) {
+        self.prodValue[day] = self.output[day] * self.unitValue;
+        self.wipValue[day] = self.wip[day] * valueOfWip;
+    }
+
 
     //does the stations work for the day. sets output, next day's WIP, and missed Opportunities
-    self.doWork = function (day, wipToAdd) {
+    self.doWork = function (day, wipToAdd, wipValue) {
 
         //first we need to calculate or capacity for the day
         self.calcCapacity(day);
-        var todayCapacity = self.capacityValues[day];
+        var todayCapacity = self.capacity[day];
 
         //next we need to calculate the wip
         self.calcWip(day, wipToAdd);
-        var startingWip = self.wipValues[day];
+        var startingWip = self.wip[day];
 
 
         //now we need to "do work"
         //if the new wip for the day is greater than today's capacity,  our output is equal to our capacity,
         //and we have 0 missed ops.  The starting WIP for tomorrow will be what's left over.
-        if (self.wipValues[day] >= todayCapacity) {
+        if (self.wip[day] >= todayCapacity) {
             self.output[day] = todayCapacity;
             self.missedOp[day] = 0;
-            self.wipValues[day + 1] = startingWip - todayCapacity;
+            self.wip[day + 1] = startingWip - todayCapacity;
 
             //otherwise, our output is limited by our wip for the day, and we have our missed ops is equal to 
             //today's capacity minus our WIP.    
         } else {
-            self.output[day] = self.wipValues[day];
+            self.output[day] = self.wip[day];
             self.missedOp[day] = todayCapacity - startingWip;
-            self.wipValues[day + 1] = 0;
+            self.wip[day + 1] = 0;
         }
 
         //finally, update our station efficiency
         self.calcEff(day);
+
+        //update our stations inventory and output values for the day
+        self.calcValue(day, wipValue);
 
     };
 

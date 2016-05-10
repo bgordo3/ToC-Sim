@@ -1,4 +1,4 @@
-/*global $,ko, Scenarios */
+/*global $, Scenarios */
 var app = app || {};
 
 /**
@@ -31,22 +31,25 @@ var ScenarioItem = function (data) {
     //initializes the scenario item.
     self.init = function () {
         self.stations = [];
+        self.days = [];
+        self.totalCapacity = [];
+        self.totalEff = []
+        self.totalFinished = [];
+        self.totalMissedOp = [];
+        self.totalOutput = [];
+        self.totalProdValue = [];
+        self.totalWIP = [];
+        self.totalWipValue = [];
+
+        self.cummOutput = 0;
+        self.cummCapacity = 0;
+        self.cummProdValue = 0;
+        self.graph = null;
+        self.maxOutput = 0;
+        self.maxStationWIP = 0;
         self.name = data.name;
         self.numOfDays = data.numOfDays;
         self.numOfStations = 0;
-        self.maxOutput = 0;
-        self.maxStationWIP = 0;
-        self.days = [];
-        self.totalWIPS = [];
-        self.totalCapacity = [];
-        self.totalOutput = [];
-        self.totalMissedOp = [];
-        self.totalFinished = [];
-        self.totalEff = []
-        self.cummOutput = 0;
-        self.cummCapacity = 0;
-        self.graph = null;
-
 
         if (data.stations) {
             data.stations.forEach(function (station) {
@@ -76,14 +79,17 @@ var ScenarioItem = function (data) {
 
     self.updateTotals = function (day) {
         self.stations.forEach(function (station) {
-            self.totalWIPS[day] += station.wipValues[day];
-            self.totalCapacity[day] += station.capacityValues[day];
+            self.totalWIP[day] += station.wip[day];
+            self.totalCapacity[day] += station.capacity[day];
             self.totalOutput[day] += station.output[day];
             self.totalMissedOp[day] += station.missedOp[day];
 
             if (station.maxWIP > self.maxStationWIP) {
                 self.maxStationWIP = station.maxWIP;
             }
+            self.totalProdValue += station.prodValue[day];
+            self.totalWipValue += station.wipValue[day];
+
 
         });
 
@@ -94,10 +100,8 @@ var ScenarioItem = function (data) {
 
         self.cummCapacity += self.totalCapacity[day];
         self.cummOutput += self.totalOutput[day];
+        self.cummProdValue += self.totalProdValue[day];
         self.totalEff[day] = self.cummOutput / self.cummCapacity;
-
-
-
 
     };
 
