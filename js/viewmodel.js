@@ -1,4 +1,4 @@
-/*global $, Model, ko, ScenarioItem */
+/*global $, Model, ko, ScenarioItem, ChartHelper*/
 // global application variable
 var app = app || {};
 
@@ -105,7 +105,6 @@ var ViewModel = function () {
             }
         }
         if (runCalc) {
-
             //initialize totals to zero
             self.currentScenario.totalWIP[day] = 0;
             self.currentScenario.totalCapacity[day] = 0;
@@ -206,123 +205,26 @@ var ViewModel = function () {
 };
 
 ViewModel.prototype = Object.create(ViewModel.prototype);
-ViewModel.prototype.createChart = function (canvas, output, missed, wip, eff, maxWIP) {
-    var graph = new Chart($(canvas), {
-
-        type: 'bar',
-        data: {
-            labels: this.currentScenario.days,
-            datasets: [{
-                    label: 'Output',
-                    backgroundColor: "rgba(0, 255, 0, 0.6)",
-                    data: output
-        },
-                {
-                    label: 'Missed Ops',
-                    backgroundColor: "rgba(255, 0, 0, 0.6)",
-                    data: missed
-        },
-                {
-                    label: "WIP",
-                    type: 'line',
-                    data: wip,
-                    fill: false,
-                    borderColor: '#EC932F',
-                    backgroundColor: '#EC932F',
-                    pointBorderColor: '#EC932F',
-                    pointBackgroundColor: '#EC932F',
-                    pointHoverBackgroundColor: '#EC932F',
-                    pointHoverBorderColor: '#EC932F',
-                    yAxisID: 'y-axis-2'
-            },
-                {
-                    label: "Eff",
-                    type: 'line',
-                    data: eff,
-                    fill: false,
-                    borderColor: '#006',
-                    backgroundColor: '#006',
-                    pointBorderColor: '#006',
-                    pointBackgroundColor: '#006',
-                    pointHoverBackgroundColor: '#006',
-                    pointHoverBorderColor: '#006',
-                    yAxisID: 'y-axis-3'
-            }]
-        },
-        options: {
-
-            animated: false,
-            scales: {
-                xAxes: [{
-                    stacked: true
-                }],
-                yAxes: [{
-                        stacked: true,
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Output / Missed'
-                        },
-                        ticks: {
-                            beginAtZero: true,
-                            suggestedMax: (this.currentScenario.maxOutput + .5)
-                        },
-                        }, {
-                        type: "linear",
-                        display: true,
-                        position: "right",
-                        id: "y-axis-2",
-                        gridLines: {
-                            display: false
-                        },
-                        labels: {
-                            show: true,
-
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'WIP'
-                        },
-                        ticks: {
-                            beginAtZero: true,
-                            suggestedMax: (maxWIP)
-                        }
-
-                        }, {
-
-                        type: "linear",
-                        display: true,
-                        position: "left",
-                        id: "y-axis-3",
-                        gridLines: {
-                            display: false
-                        },
-                        labels: {
-                            show: true,
-                        },
-                        ticks: {
-                            beginAtZero: true,
-                            suggestedMax: (1.0),
-                            stepSize: .2
-
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Efficiency'
-                        }
-                        }
-                    ]
-            }
-        }
-
-    });
+ViewModel.prototype.createChart = function (canvas, output, missed, wip, eff) {
+    var graph = null;
+    var data = {
+        axisLabel: 'Eff',
+        axisMax: 1.2,
+        axisStep: .2,
+        dataLabel: 'Eff',
+        dataType: 'line',
+        optData: eff
+    }
+    graph = chartHelper(canvas, output, missed, wip, data);
     return graph;
+
 }
 ViewModel.prototype.buildUI = function () {
     this.clearUI();
     $('.control').removeClass("hidden");
 
     var headerHTML = '<div id="scenario-settings" class="settings">Scenario Data' +
-        '<p>Number of Days: ' + this.currentScenarionumOfDays + '</p>' +
+        '<p>Number of Days: ' + this.currentScenario.numOfDays + '</p>' +
         '<p>Number of Stations: ' + this.currentScenario.numOfStations + '</p>';
     $('#scenario-container').append(headerHTML);
     $('#scenario-container').append('<div id="scenario-graph" class="graph"></div>');
