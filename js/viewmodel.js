@@ -363,11 +363,23 @@ ViewModel.prototype.buildUI = function () {
         var wipID = "station" + i + "wip";
         var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>'
         var stationSettingsHTML = '<div id="station' + i + '-settings" class="settings">Station ' + i + ' Data' +
-            ' <p> Base Capacity: <input id="' + capID + '" type="text" name="' + capID + '"></p>' +
-            ' <p> Capacity Range: <input id="' + rangeID + '" type="text" name="station' + i + 'range"></p>' +
-            ' <p> Variance Factor: <input id="' + varID + '" type="text" name="station' + i + 'var"></p>' +
-            ' <p> Unit Value: <input id="' + unitValID + '" type="text" name="station' + i + 'unitVal"></p>' +
-            ' <p> Current WIP: <input id="' + wipID + '" type="text" name="station' + i + 'wip"></p>' +
+            '<table><tr>' +
+            '<td>Base Capacity:</td>' +
+            '<td><input id="' + capID + '" type="text" name="' + capID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Capacity Range:</td>' +
+            '<td><input id="' + rangeID + '" type="text" name="' + rangeID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Variance Factor:</td>' +
+            '<td><input id="' + varID + '" type="text" name="' + varID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Unit Value: </td>' +
+            '<td><input id="' + unitValID + '" type="text" name="' + unitValID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Current WIP: </td>' +
+            '<td><input id="' + wipID + '" type="text" name="' + wipID + '"></td>' +
+            '</tr></table></div>';
+        var stationNetworkHTML = '<div id="station' + i + '-network" class="network-settings">' +
             '</div>';
         var stationGraphID = 'station' + i + '-graph';
         var stationGraphCanvasID = 'station' + i + '-canvas';
@@ -375,6 +387,7 @@ ViewModel.prototype.buildUI = function () {
             '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
         $('#station-container').append(stationHTML);
         $('#' + stationContainerID).append(stationSettingsHTML);
+        $('#' + stationContainerID).append(stationNetworkHTML);
         $('#' + stationContainerID).append(stationGraphHTML);
         $('#' + capID).val(currentStation.baseCapacity);
         $('#' + rangeID).val(currentStation.capRange);

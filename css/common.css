@@ -143,6 +143,7 @@ body {
 }
 
 .settings {
+    text-align: center;
     width: 20%;
 }
 
@@ -176,6 +177,11 @@ body {
     height: 400px;
     display: flex;
     width: 100%;
+}
+
+.network-settings {
+    background-color: darkgray;
+    width: 20%;
 }
 
 
