@@ -1,7 +1,7 @@
 /*global $, Model, ScenarioItem */
 var app = app || {};
 
-var chartHelper = function (canvas, output, missed, wip, data) {
+var chartHelper = function (canvas, output, missed, wip, optData) {
     var baseDataSets = [
         {
             label: 'Output',
@@ -25,11 +25,13 @@ var chartHelper = function (canvas, output, missed, wip, data) {
             pointHoverBackgroundColor: '#EC932F',
             pointHoverBorderColor: '#EC932F',
             yAxisID: 'y-axis-2'
-            },
-        {
-            label: data.dataLabel,
-            type: data.dataType,
-            data: data.optData,
+            }
+                   ];
+    if (optData) {
+        baseDataSets.push({
+            label: optData.dataLabel,
+            type: optData.dataType,
+            data: optData.optData,
             fill: false,
             borderColor: '#006',
             backgroundColor: '#006',
@@ -38,9 +40,10 @@ var chartHelper = function (canvas, output, missed, wip, data) {
             pointHoverBackgroundColor: '#006',
             pointHoverBorderColor: '#006',
             yAxisID: 'y-axis-3'
-            }
+        });
 
-                   ];
+    }
+
     var baseOptions = {
         animated: false,
         scales: {
@@ -78,31 +81,47 @@ var chartHelper = function (canvas, output, missed, wip, data) {
                         suggestedMax: app.viewModel.currentScenario.maxStationWIP
                     }
 
-                        }, {
-
-                    type: "linear",
-                    display: true,
-                    position: "left",
-                    id: "y-axis-3",
-                    gridLines: {
-                        display: false
-                    },
-                    labels: {
-                        show: true,
-                    },
-                    ticks: {
-                        beginAtZero: true,
-                        suggestedMax: data.max,
-                        stepSize: data.step
-                    },
-                    scaleLabel: {
-                        display: true,
-                        labelString: data.axisLabel
-                    }
                         }
                     ]
         }
     }
+
+    if (optData) {
+        var axis = {
+            type: "linear",
+            display: true,
+            position: "left",
+            id: "y-axis-3",
+            gridLines: {
+                display: false
+            },
+            labels: {
+                show: true,
+            },
+            ticks: {
+                beginAtZero: true
+            },
+            scaleLabel: {
+                display: true,
+
+            }
+
+        };
+
+        if (optData.max) {
+            axis.ticks.suggestedMax = optData.axisMax;
+            axis.ticks.stepSize = optData.step;
+        }
+        if (optData.step) {
+            axis.ticks.stepSize = optData.step;
+        }
+        if (optData.axisLabel) {
+            axis.scaleLabel.labelString = optData.axisLabel;
+        }
+        baseOptions.scales.yAxes.push(axis);
+
+    }
+
 
     var graphData = {
         type: 'bar',

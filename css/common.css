@@ -1,189 +1,209 @@
-    /* null margins and padding to give cross-browser baseline */
-    
-    html,
-    body,
-    ul,
-    ol,
-    li,
-    form,
-    fieldset,
-    legend,
-    img {
-        border: 0;
-        margin: 0;
-        padding: 0;
-    }
-    
-    html,
-    body {
-        height: 100%;
-        background-color: #777;
-        font-family: sans-serif;
-        width: 100%;
-    }
-    
-    .content-container {
-        display: inline-flex;
-        margin-top: 0px;
-        position: absolute;
-        width: 100%;
-    }
-    
-    .center {
-        text-align: center;
-    }
-    /*---------------------------------- Header ---------------------------------- */
-    
-    .header-bar {
-        background-color: #789;
-        height: 120px;
-        display: flex;
-        text-align: center;
-    }
-    
-    .menu-button {
-        display: none;
-    }
-    
-    .menu-button-container {
-        width: 80px;
-    }
-    
-    .title-container {
-        margin: auto;
-        padding: 5px;
-        text-align: center;
-    }
-    
-    .hidden {
-        visibility: hidden;
-    }
-    
-    .arrow {
-        padding-top: 10px;
-        height: 80px;
-        max-width: 100%;
-        max-height: 100%;
-    }
-    
-    .label {
-        height: 20px;
-    }
-    /* ---------------------------------- Navigation ---------------------------------- */
-    
-    .nav {
-        background-color: #001;
-        color: #888;
-        float: left;
-        width: 300px;
-    }
-    
-    .menu-item {
-        color: #aaa;
-        padding: 5px;
-    }
-    
-    .menu-item:hover {
-        background-color: #8a008a;
-    }
-    
-    .selected {
-        background-color: #8a008a;
-    }
-    
-    .custom-settings {
-        background-color: rgba(26, 0, 108, 0.79);
-        margin-top: 5px;
-        padding: 5px
-    }
-    
-    .settings-input {
-        width: 25px;
-        float: right;
-    }
-    
-    .menu-button {
-        display: inline-block;
-        position: absolute;
-        left: 0;
-        padding: 32px 0 0 16px;
-    }
-    
-    .menu-button-svg {
-        height: 64px;
-        width: 64px;
-    }
-    
-    .nav {
-        z-index: 10;
-        position: absolute;
-        left: -300px;
-        /* This trasform moves the drawer off canvas. */
-        -webkit-transform: translate(0px, 0px);
-        transform: translate(-0px, 0px);
-        /* Optionally, we animate the drawer. */
-        transition: transform .5s ease;
-    }
-    
-    .nav.open {
-        -webkit-transform: translate(300px, 0);
-        transform: translate(300px, 0);
-    }
-    /* ---------------------------------- Main Window ---------------------------------- */
-    
-    .sim-container {
-        height: 100%;
-        width: 100%;
-    }
-    
-    .settings {
-        width: 40%;
-    }
-    
-    .graph {
-        height: 96%;
-        width: 60%;
-        padding: 1% 0% 0% 0%;
-    }
-    
-    .canvas {
-        background-color: white;
-        height: 100% !important;
-    }
-    
-    .scenario-container {
-        background-color: cornflowerblue;
-        height: 500px;
-        display: flex;
-        width: 100%;
-    }
-    
-    .station {
-        background-color: cornflowerblue;
-        background-color: gray;
-        height: 400px;
-        display: flex;
-        width: 100%;
-    }
-    /* General Purpose */
-    
-    .span-one-col {
-        -webkit-column-span: 1;
-        /* Chrome, Safari, Opera */
-        column-span: 1;
-        width: 11.1%;
-    }
-    
-    .span-two-col {
-        -webkit-column-span: 2;
-        /* Chrome, Safari, Opera */
-        column-span: 2;
-        width: 22.2%;
-    }
-    
-    .span-four-col {
-        -webkit-column-span: 4;
-        /* Chrome, Safari, Opera */
-        column-span: 4;
-        width: 44.4%;
-    }
+/* null margins and padding to give cross-browser baseline */
+
+html,
+body,
+ul,
+ol,
+li,
+form,
+fieldset,
+legend,
+img {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+    background-color: #777;
+    font-family: sans-serif;
+    width: 100%;
+}
+
+.content-container {
+    display: inline-flex;
+    margin-top: 0px;
+    position: absolute;
+    width: 100%;
+}
+
+.center {
+    text-align: center;
+}
+
+
+/*---------------------------------- Header ---------------------------------- */
+
+.header-bar {
+    background-color: #789;
+    height: 120px;
+    display: flex;
+    text-align: center;
+}
+
+.menu-button {
+    display: none;
+}
+
+.menu-button-container {
+    width: 80px;
+}
+
+.title-container {
+    margin: auto;
+    padding: 5px;
+    text-align: center;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+.arrow {
+    padding-top: 10px;
+    height: 80px;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.label {
+    height: 20px;
+}
+
+
+/* ---------------------------------- Navigation ---------------------------------- */
+
+.nav {
+    background-color: #001;
+    color: #888;
+    float: left;
+    width: 300px;
+}
+
+.menu-item {
+    color: #aaa;
+    padding: 5px;
+}
+
+.menu-item:hover {
+    background-color: #8a008a;
+}
+
+.selected {
+    background-color: #8a008a;
+}
+
+.custom-settings {
+    background-color: rgba(26, 0, 108, 0.79);
+    margin-top: 5px;
+    padding: 5px
+}
+
+.settings-input {
+    width: 25px;
+    float: right;
+}
+
+.menu-button {
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    padding: 32px 0 0 16px;
+}
+
+.menu-button-svg {
+    height: 64px;
+    width: 64px;
+}
+
+.nav {
+    z-index: 10;
+    position: absolute;
+    left: -300px;
+    /* This trasform moves the drawer off canvas. */
+    -webkit-transform: translate(0px, 0px);
+    transform: translate(-0px, 0px);
+    /* Optionally, we animate the drawer. */
+    transition: transform .5s ease;
+}
+
+.nav.open {
+    -webkit-transform: translate(300px, 0);
+    transform: translate(300px, 0);
+}
+
+
+/* ---------------------------------- Main Window ---------------------------------- */
+
+.sim-container {
+    height: 100%;
+    width: 100%;
+}
+
+.settings {
+    text-align: center;
+    width: 20%;
+}
+
+.graph-settings {
+    background-color: darkgray;
+    width: 20%;
+}
+
+.graph {
+    height: 96%;
+    width: 60%;
+    padding: 1% 0% 0% 0%;
+    background-color: white;
+}
+
+.canvas {
+    background-color: white;
+    height: 100% !important;
+}
+
+.scenario-container {
+    background-color: cornflowerblue;
+    height: 500px;
+    display: flex;
+    width: 100%;
+}
+
+.station {
+    background-color: cornflowerblue;
+    background-color: gray;
+    height: 400px;
+    display: flex;
+    width: 100%;
+}
+
+.network-settings {
+    background-color: darkgray;
+    width: 20%;
+}
+
+
+/* General Purpose */
+
+.span-one-col {
+    -webkit-column-span: 1;
+    /* Chrome, Safari, Opera */
+    column-span: 1;
+    width: 11.1%;
+}
+
+.span-two-col {
+    -webkit-column-span: 2;
+    /* Chrome, Safari, Opera */
+    column-span: 2;
+    width: 22.2%;
+}
+
+.span-four-col {
+    -webkit-column-span: 4;
+    /* Chrome, Safari, Opera */
+    column-span: 4;
+    width: 44.4%;
+}
