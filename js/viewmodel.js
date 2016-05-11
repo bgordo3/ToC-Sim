@@ -1,4 +1,4 @@
-/*global $, Model, ko, ScenarioItem, ChartHelper*/
+/*global $, Model, ko, ScenarioItem, ChartHelper, ResourceItem*/
 // global application variable
 var app = app || {};
 
@@ -25,6 +25,7 @@ var ViewModel = function () {
     self.numOfDays = ko.observable(30);
     self.currentDay = ko.observable(0);
     self.finishProd = false;
+
 
     //populate locations observable container with data from model. We first create a blank scenario object,
     //then initialize it with the data our scenario definitions.
