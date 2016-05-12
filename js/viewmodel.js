@@ -25,7 +25,6 @@ var ViewModel = function () {
     self.numOfDays = ko.observable(30);
     self.currentDay = ko.observable(0);
     self.finishProd = false;
-    console.log("hi");
 
     //populate locations observable container with data from model. We first create a blank scenario object,
     //then initialize it with the data our scenario definitions.
@@ -115,7 +114,6 @@ var ViewModel = function () {
                     station.totalEff);
             });
             break;
-        case 'none':
         default:
             console.log(self.currentScenario.graph);
             self.currentScenario.graph = self.createChart('#scenario-canvas ',
@@ -131,9 +129,8 @@ var ViewModel = function () {
                     null);
             });
             break;
-        }
-
-    }
+        }       
+    };
 
     /**
      * @description - loads custom scenario when 'Load Scenario' is clicked
