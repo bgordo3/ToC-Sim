@@ -162,7 +162,7 @@ var ViewModel = function () {
         self.clearUI();
         self.buildUI();
 
-    }
+    };
 
     window.runProduction = function () {
         var runCalc = false;
@@ -200,12 +200,12 @@ var ViewModel = function () {
                 currentStation.wip[self.currentDay()] = parseInt($('#' + wipID).val());
 
                 //if we are the first station, don't worry about previous station
-                if (i == 0) {
+                if (i === 0) {
                     wipToAdd = 0;
                     wipValue = 0;
                 } else {
                     //if its the first day, only work on what's in the initial WIP
-                    if (self.currentDay() == 0) {
+                    if (self.currentDay() === 0) {
                         wipToAdd = 0;
                     } else { //its not the first day, so we need to add previous stations work
                         wipToAdd = self.currentScenario.stations[i - 1].output[day - 1];
@@ -261,10 +261,11 @@ ViewModel.prototype = Object.create(ViewModel.prototype);
 
 ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData) {
     var graph = null;
+     var data =null;
 
     switch ($('#graph-option').val()) {
         case 'Production Value':
-            var data = {
+           data = {
                 axisLabel: 'Production Value',
                 axisMax: 10,
                 axisStep: 1,
@@ -274,7 +275,7 @@ ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData
             };
             break;
         case 'WIP Inventory Value':
-            var data = {
+            data = {
                 axisLabel: 'WIP Value',
                 axisMax: 10,
                 axisStep: 1,
@@ -284,14 +285,14 @@ ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData
             };
             break;
         case 'Efficiency':
-            var data = {
+            data = {
                 axisLabel: 'Eff',
                 axisMax: 1.2,
-                axisStep: .2,
+                axisStep: 0.2,
                 dataLabel: 'Eff',
                 dataType: 'line',
                 optData: optData
-            }
+            };
             break;
         case 'none':
             data = null;
@@ -334,7 +335,7 @@ ViewModel.prototype.buildUI = function () {
         var unitValID = "station" + i + "unitVal";
         var varID = "station" + i + "var";
         var wipID = "station" + i + "wip";
-        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>'
+        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>';
         var stationSettingsHTML = '<div id="station' + i + '-settings" class="settings">Station ' + i + ' Data' +
             '<table><tr>' +
             '<td>Base Capacity:</td>' +
