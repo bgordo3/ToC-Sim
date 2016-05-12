@@ -15,8 +15,8 @@ var ViewModel = function () {
         $menuButton = $('#menu-button-container'),
         $customScenario = $('#custom'),
         $customSettings = $('#custom-settings');
-    $customSettings.toggle(false);
 
+    $customSettings.toggle(false);
     self.model = new Model();
     self.currentScenario = null;
     self.scenarios = ko.observableArray();
@@ -25,7 +25,7 @@ var ViewModel = function () {
     self.numOfDays = ko.observable(30);
     self.currentDay = ko.observable(0);
     self.finishProd = false;
-
+    console.log("hi");
 
     //populate locations observable container with data from model. We first create a blank scenario object,
     //then initialize it with the data our scenario definitions.
@@ -51,12 +51,12 @@ var ViewModel = function () {
         $nav.removeClass('open');
     });
 
-
     //click action for when user clicks on custom scenario from menu.
     $customScenario.click(function () {
         $customSettings.toggle("slow");
         self.scenarioTitle("Custom Scenario");
     });
+
 
     window.changeGraph = function () {
         var dataToGraph = null;
@@ -134,7 +134,6 @@ var ViewModel = function () {
         }
 
     }
-
 
     /**
      * @description - loads custom scenario when 'Load Scenario' is clicked
@@ -259,18 +258,6 @@ var ViewModel = function () {
      */
     window.menuClick = function () {
         self.loadScenario(this);
-    };
-
-    this.loadScenario = function (scenario) {
-        if (this.$nav) {
-            self.$nav.removeClass('open');
-            self.$customSettings.toggle(false);
-        }
-        self.currentScenario = scenario;
-        self.scenarioTitle(self.currentScenario.name);
-        self.numOfStations(self.currentScenario.numOfStations);
-        self.numOfDays(self.currentScenario.numOfDays);
-        self.buildUI();
     };
 
     $(document).ready(function () {
@@ -442,7 +429,17 @@ ViewModel.prototype.updateData = function () {
 
     scenario.graph.update();
 }
-
+ViewModel.prototype.loadScenario = function (scenario) {
+    if (this.$nav) {
+        this.$nav.removeClass('open');
+        this.$customSettings.toggle(false);
+    }
+    this.currentScenario = scenario;
+    this.scenarioTitle(this.currentScenario.name);
+    this.numOfStations(this.currentScenario.numOfStations);
+    this.numOfDays(this.currentScenario.numOfDays);
+    this.buildUI();
+};
 
 //instaniate our controller
 app.viewModel = new ViewModel();
