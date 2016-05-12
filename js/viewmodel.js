@@ -254,7 +254,7 @@ var ViewModel = function () {
             runProduction();
         }
     });
-
+ //test
 };
 
 ViewModel.prototype = Object.create(ViewModel.prototype);
