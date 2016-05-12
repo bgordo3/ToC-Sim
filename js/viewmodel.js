@@ -3,10 +3,6 @@
 var app = app || {};
 
 
-/**
- * @description - controller for index.html
- * @constructor
- */
 var ViewModel = function () {
     'use strict';
     var self = this,
@@ -69,7 +65,6 @@ var ViewModel = function () {
                 '<canvas id="station' + station.number + '-canvas" class="canvas"></canvas></div>');
         });
 
-
         switch ($('#graph-option').val()) {
         case 'Production Value':
             self.currentScenario.graph = self.createChart('#scenario-canvas',
@@ -130,7 +125,6 @@ var ViewModel = function () {
             });
             break;
         }       
-    };
 
     /**
      * @description - loads custom scenario when 'Load Scenario' is clicked
@@ -159,16 +153,15 @@ var ViewModel = function () {
             scenario.addStation(tempStation);
         }
         self.loadScenario(scenario);
-    }
+    };
 
-    //reset
     window.reload = function () {
         self.currentDay(0);
         self.currentScenario.reload();
         self.clearUI();
         self.buildUI();
 
-    }
+    };
 
     window.runProduction = function () {
         var runCalc = false;
@@ -206,12 +199,12 @@ var ViewModel = function () {
                 currentStation.wip[self.currentDay()] = parseInt($('#' + wipID).val());
 
                 //if we are the first station, don't worry about previous station
-                if (i == 0) {
+                if (i === 0) {
                     wipToAdd = 0;
                     wipValue = 0;
                 } else {
                     //if its the first day, only work on what's in the initial WIP
-                    if (self.currentDay() == 0) {
+                    if (self.currentDay() === 0) {
                         wipToAdd = 0;
                     } else { //its not the first day, so we need to add previous stations work
                         wipToAdd = self.currentScenario.stations[i - 1].output[day - 1];
@@ -249,10 +242,6 @@ var ViewModel = function () {
         });
     };
 
-    /**
-     * @description - closes menu drawer and displays info window for selected pin.
-     *                function is bound by Knockout.js framework in index.html
-     */
     window.menuClick = function () {
         self.loadScenario(this);
     };
@@ -264,54 +253,56 @@ var ViewModel = function () {
             runProduction();
         }
     });
-
+ //test
 };
 
 ViewModel.prototype = Object.create(ViewModel.prototype);
+
 ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData) {
     var graph = null;
+     var data =null;
 
     switch ($('#graph-option').val()) {
-    case 'Production Value':
-        var data = {
-            axisLabel: 'Production Value',
-            axisMax: 10,
-            axisStep: 1,
-            dataLabel: 'Production Value',
-            dataType: 'line',
-            optData: optData
-        };
-        break;
-    case 'WIP Inventory Value':
-        var data = {
-            axisLabel: 'WIP Value',
-            axisMax: 10,
-            axisStep: 1,
-            dataLabel: 'WIP Value',
-            dataType: 'line',
-            optData: optData
-        };
-        break;
-    case 'Efficiency':
-        var data = {
-            axisLabel: 'Eff',
-            axisMax: 1.2,
-            axisStep: .2,
-            dataLabel: 'Eff',
-            dataType: 'line',
-            optData: optData
-        }
-        break;
-    case 'none':
-    default:
-        data = null;
-        break;
+        case 'Production Value':
+           data = {
+                axisLabel: 'Production Value',
+                axisMax: 10,
+                axisStep: 1,
+                dataLabel: 'Production Value',
+                dataType: 'line',
+                optData: optData
+            };
+            break;
+        case 'WIP Inventory Value':
+            data = {
+                axisLabel: 'WIP Value',
+                axisMax: 10,
+                axisStep: 1,
+                dataLabel: 'WIP Value',
+                dataType: 'line',
+                optData: optData
+            };
+            break;
+        case 'Efficiency':
+            data = {
+                axisLabel: 'Eff',
+                axisMax: 1.2,
+                axisStep: 0.2,
+                dataLabel: 'Eff',
+                dataType: 'line',
+                optData: optData
+            };
+            break;
+        case 'none':
+            data = null;
+            break;
     }
 
     graph = chartHelper(canvas, output, missed, wip, data);
     return graph;
 
-}
+};
+
 ViewModel.prototype.buildUI = function () {
     this.clearUI();
     $('.control').removeClass("hidden");
@@ -333,10 +324,7 @@ ViewModel.prototype.buildUI = function () {
 
 
     //create our overall scenario chart
-
     this.currentScenario.graph = this.createChart('#scenario-canvas', this.currentScenario.totalOutput, this.currentScenario.totalMissedOp, this.currentScenario.totalWIP, null);
-
-
 
     for (var i = 1; i <= this.numOfStations(); i++) {
         var currentStation = this.currentScenario.stations[i - 1];
@@ -346,7 +334,7 @@ ViewModel.prototype.buildUI = function () {
         var unitValID = "station" + i + "unitVal";
         var varID = "station" + i + "var";
         var wipID = "station" + i + "wip";
-        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>'
+        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>';
         var stationSettingsHTML = '<div id="station' + i + '-settings" class="settings">Station ' + i + ' Data' +
             '<table><tr>' +
             '<td>Base Capacity:</td>' +
@@ -383,16 +371,18 @@ ViewModel.prototype.buildUI = function () {
         currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, null);
 
     }
-}
-ViewModel.prototype.clearUI = function () {
-        $('.settings').remove();
-        $('.graph').remove();
-        $('.station').remove();
-        $('.canvas').remove();
-        $('.control').addClass("hidden");
+};
 
-    }
-    //updates the display with the most recent data
+ViewModel.prototype.clearUI = function () {
+    $('.settings').remove();
+    $('.graph').remove();
+    $('.station').remove();
+    $('.canvas').remove();
+    $('.control').addClass("hidden");
+
+};
+
+//updates the display with the most recent data
 ViewModel.prototype.updateData = function () {
     var day = this.currentDay();
     var scenario = this.currentScenario;
@@ -425,7 +415,8 @@ ViewModel.prototype.updateData = function () {
     }
 
     scenario.graph.update();
-}
+};
+
 ViewModel.prototype.loadScenario = function (scenario) {
     if (this.$nav) {
         this.$nav.removeClass('open');
