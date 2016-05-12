@@ -1,7 +1,6 @@
-/*global $, Model, ko, ScenarioItem, ChartHelper, ResourceItem*/
+/*global $, Model, ko, ScenarioItem, ChartHelper, ResourceItem */
 // global application variable
 var app = app || {};
-
 
 var ViewModel = function () {
     'use strict';
@@ -52,7 +51,6 @@ var ViewModel = function () {
         self.scenarioTitle("Custom Scenario");
     });
 
-
     window.changeGraph = function () {
         var dataToGraph = null;
 
@@ -79,7 +77,6 @@ var ViewModel = function () {
                     station.wip,
                     station.prodValue);
             });
-
             break;
         case 'WIP Inventory Value':
             self.currentScenario.graph = self.createChart('#scenario-canvas',
@@ -124,7 +121,8 @@ var ViewModel = function () {
                     null);
             });
             break;
-        }       
+        }
+    };       
 
     /**
      * @description - loads custom scenario when 'Load Scenario' is clicked
@@ -253,7 +251,6 @@ var ViewModel = function () {
             runProduction();
         }
     });
- //test
 };
 
 ViewModel.prototype = Object.create(ViewModel.prototype);
@@ -296,7 +293,7 @@ ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData
         case 'none':
             data = null;
             break;
-    }
+    };
 
     graph = chartHelper(canvas, output, missed, wip, data);
     return graph;
@@ -406,8 +403,6 @@ ViewModel.prototype.updateData = function () {
         $('#' + unitValID).val(currentStation.unitValue);
         $('#' + varID).val(currentStation.varFactor);
         $('#' + wipID).val(currentStation.wip[this.currentDay() + 1]);
-
-
 
         if (!self.finishProd) {
             currentStation.graph.update();
