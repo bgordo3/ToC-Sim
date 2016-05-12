@@ -18,7 +18,7 @@ var Model = function () {
         return self.scenarios;
     };
 
-}
+};
 
 /**
  * @description - object that represents location data to be used by the controller
@@ -33,7 +33,7 @@ var ScenarioItem = function (data) {
         self.stations = [];
         self.days = [];
         self.totalCapacity = [];
-        self.totalEff = []
+        self.totalEff = [];
         self.totalFinished = [];
         self.totalMissedOp = [];
         self.totalOutput = [];
@@ -70,12 +70,12 @@ var ScenarioItem = function (data) {
     self.addStation = function (station) {
         self.stations.push(station);
         self.numOfStations = self.numOfStations + 1;
-    }
+    };
 
     //re-initializes this scenario
     self.reload = function () {
-        self.init()
-    }
+        self.init();
+    };
 
     self.updateTotals = function (day) {
         self.stations.forEach(function (station) {

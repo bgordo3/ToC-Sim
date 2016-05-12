@@ -58,7 +58,7 @@ var chartHelper = function (canvas, output, missed, wip, optData) {
                     },
                     ticks: {
                         beginAtZero: true,
-                        suggestedMax: (app.viewModel.currentScenario.maxOutput + .5)
+                        suggestedMax: (app.viewModel.currentScenario.maxOutput + 0.5)
                     },
                         }, {
                     type: "linear",
@@ -84,7 +84,7 @@ var chartHelper = function (canvas, output, missed, wip, optData) {
                         }
                     ]
         }
-    }
+    };
 
     if (optData) {
         var axis = {

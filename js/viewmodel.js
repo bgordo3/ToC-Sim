@@ -11,7 +11,9 @@ var ViewModel = function () {
         $customScenario = $('#custom'),
         $customSettings = $('#custom-settings');
 
-    $customSettings.toggle(false);
+
+    self.$scenarioContainer = null;
+    self.stationContainer = [];
     self.model = new Model();
     self.currentScenario = null;
     self.scenarios = ko.observableArray();
@@ -20,6 +22,7 @@ var ViewModel = function () {
     self.numOfDays = ko.observable(30);
     self.currentDay = ko.observable(0);
     self.finishProd = false;
+    $customSettings.toggle(false);
 
     //populate locations observable container with data from model. We first create a blank scenario object,
     //then initialize it with the data our scenario definitions.
@@ -64,65 +67,65 @@ var ViewModel = function () {
         });
 
         switch ($('#graph-option').val()) {
-        case 'Production Value':
-            self.currentScenario.graph = self.createChart('#scenario-canvas',
-                self.currentScenario.totalOutput,
-                self.currentScenario.totalMissedOp,
-                self.currentScenario.totalWIP,
-                self.currentScenario.totalProdValue);
-            self.currentScenario.stations.forEach(function (station) {
-                station.graph = self.createChart('#station' + station.number + '-canvas',
-                    station.output,
-                    station.missedOp,
-                    station.wip,
-                    station.prodValue);
-            });
-            break;
-        case 'WIP Inventory Value':
-            self.currentScenario.graph = self.createChart('#scenario-canvas',
-                self.currentScenario.totalOutput,
-                self.currentScenario.totalMissedOp,
-                self.currentScenario.totalWIP,
-                self.currentScenario.totalWipValue);
-            self.currentScenario.stations.forEach(function (station) {
-                station.graph = self.createChart('#station' + station.number + '-canvas',
-                    station.output,
-                    station.missedOp,
-                    station.wip,
-                    station.wipValue);
-            });
-            break;
-        case 'Efficiency':
-            self.currentScenario.graph = self.createChart('#scenario-canvas',
-                self.currentScenario.totalOutput,
-                self.currentScenario.totalMissedOp,
-                self.currentScenario.totalWIP,
-                self.currentScenario.totalEff);
-            self.currentScenario.stations.forEach(function (station) {
-                station.graph = self.createChart('#station' + station.number + '-canvas',
-                    station.output,
-                    station.missedOp,
-                    station.wip,
-                    station.totalEff);
-            });
-            break;
-        default:
-            console.log(self.currentScenario.graph);
-            self.currentScenario.graph = self.createChart('#scenario-canvas ',
-                self.currentScenario.totalOutput,
-                self.currentScenario.totalMissedOp,
-                self.currentScenario.totalWIP,
-                null);
-            self.currentScenario.stations.forEach(function (station) {
-                station.graph = self.createChart('#station' + station.number + '-canvas',
-                    station.output,
-                    station.missedOp,
-                    station.wip,
+            case 'Production Value':
+                self.currentScenario.graph = self.createChart('#scenario-canvas',
+                    self.currentScenario.totalOutput,
+                    self.currentScenario.totalMissedOp,
+                    self.currentScenario.totalWIP,
+                    self.currentScenario.totalProdValue);
+                self.currentScenario.stations.forEach(function (station) {
+                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                        station.output,
+                        station.missedOp,
+                        station.wip,
+                        station.prodValue);
+                });
+                break;
+            case 'WIP Inventory Value':
+                self.currentScenario.graph = self.createChart('#scenario-canvas',
+                    self.currentScenario.totalOutput,
+                    self.currentScenario.totalMissedOp,
+                    self.currentScenario.totalWIP,
+                    self.currentScenario.totalWipValue);
+                self.currentScenario.stations.forEach(function (station) {
+                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                        station.output,
+                        station.missedOp,
+                        station.wip,
+                        station.wipValue);
+                });
+                break;
+            case 'Efficiency':
+                self.currentScenario.graph = self.createChart('#scenario-canvas',
+                    self.currentScenario.totalOutput,
+                    self.currentScenario.totalMissedOp,
+                    self.currentScenario.totalWIP,
+                    self.currentScenario.totalEff);
+                self.currentScenario.stations.forEach(function (station) {
+                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                        station.output,
+                        station.missedOp,
+                        station.wip,
+                        station.totalEff);
+                });
+                break;
+            default:
+                console.log(self.currentScenario.graph);
+                self.currentScenario.graph = self.createChart('#scenario-canvas ',
+                    self.currentScenario.totalOutput,
+                    self.currentScenario.totalMissedOp,
+                    self.currentScenario.totalWIP,
                     null);
-            });
-            break;
+                self.currentScenario.stations.forEach(function (station) {
+                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                        station.output,
+                        station.missedOp,
+                        station.wip,
+                        null);
+                });
+                break;
         }
-    };       
+    };
 
     /**
      * @description - loads custom scenario when 'Load Scenario' is clicked
@@ -244,6 +247,14 @@ var ViewModel = function () {
         self.loadScenario(this);
     };
 
+    window.toggleStations = function () {
+        if ($('#showStationsCheckbox').is(':checked')) {
+            self.createStations();
+        } else {
+            self.clearStations();
+        }
+    };
+
     $(document).ready(function () {
         self.loadScenario(self.scenarios()[0]);
         var i = 0;
@@ -257,11 +268,11 @@ ViewModel.prototype = Object.create(ViewModel.prototype);
 
 ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData) {
     var graph = null;
-     var data =null;
+    var data = null;
 
     switch ($('#graph-option').val()) {
         case 'Production Value':
-           data = {
+            data = {
                 axisLabel: 'Production Value',
                 axisMax: 10,
                 axisStep: 1,
@@ -302,13 +313,17 @@ ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData
 
 ViewModel.prototype.buildUI = function () {
     this.clearUI();
+    if (!self.$scenarioContainer) {
+        self.$scenarioContainer = $('#scenario-container');
+    }
     $('.control').removeClass("hidden");
-
     var headerHTML = '<div id="scenario-settings" class="settings">Scenario Data' +
         '<p>Number of Days: ' + this.currentScenario.numOfDays + '</p>' +
-        '<p>Number of Stations: ' + this.currentScenario.numOfStations + '</p>';
-    $('#scenario-container').append(headerHTML);
-    $('#scenario-container').append('<div id="graph-settings" class="graph-settings">' +
+        '<p>Number of Stations: ' + this.currentScenario.numOfStations + '</p>' +
+        'Show Stations?<input type= "checkbox" id="showStationsCheckbox" checked="checked" onchange="toggleStations()"></>';
+
+    self.$scenarioContainer.append(headerHTML);
+    self.$scenarioContainer.append('<div id="graph-settings" class="graph-settings">' +
         'Graph Optional Line: ' +
         '<select id="graph-option" onchange="changeGraph()">' +
         '<option value="None">None</option>' +
@@ -316,57 +331,78 @@ ViewModel.prototype.buildUI = function () {
         '<option value="WIP Inventory Value">WIP Inventory Value</option>' +
         '<option value="Production Value">Production Value</option>' +
         '</select>');
-    $('#scenario-container').append('<div id="scenario-graph" class="graph"></div>');
+    self.$scenarioContainer.append('<div id="scenario-graph" class="graph"></div>');
     $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
 
 
     //create our overall scenario chart
     this.currentScenario.graph = this.createChart('#scenario-canvas', this.currentScenario.totalOutput, this.currentScenario.totalMissedOp, this.currentScenario.totalWIP, null);
+    if ($('#showStationsCheckbox').is(':checked')) {
+        this.createStations();
+    }
 
-    for (var i = 1; i <= this.numOfStations(); i++) {
-        var currentStation = this.currentScenario.stations[i - 1];
-        var stationContainerID = 'station' + i + '-container';
-        var capID = "station" + i + "cap";
-        var rangeID = "station" + i + "range";
-        var unitValID = "station" + i + "unitVal";
-        var varID = "station" + i + "var";
-        var wipID = "station" + i + "wip";
-        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>';
-        var stationSettingsHTML = '<div id="station' + i + '-settings" class="settings">Station ' + i + ' Data' +
-            '<table><tr>' +
-            '<td>Base Capacity:</td>' +
-            '<td><input id="' + capID + '" type="text" name="' + capID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Capacity Range:</td>' +
-            '<td><input id="' + rangeID + '" type="text" name="' + rangeID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Variance Factor:</td>' +
-            '<td><input id="' + varID + '" type="text" name="' + varID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Unit Value: </td>' +
-            '<td><input id="' + unitValID + '" type="text" name="' + unitValID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Current WIP: </td>' +
-            '<td><input id="' + wipID + '" type="text" name="' + wipID + '"></td>' +
-            '</tr></table></div>';
-        var stationNetworkHTML = '<div id="station' + i + '-network" class="network-settings">' +
-            '</div>';
-        var stationGraphID = 'station' + i + '-graph';
-        var stationGraphCanvasID = 'station' + i + '-canvas';
-        var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
-            '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
-        $('#station-container').append(stationHTML);
-        $('#' + stationContainerID).append(stationSettingsHTML);
-        $('#' + stationContainerID).append(stationNetworkHTML);
-        $('#' + stationContainerID).append(stationGraphHTML);
-        $('#' + capID).val(currentStation.baseCapacity);
-        $('#' + rangeID).val(currentStation.capRange);
-        $('#' + unitValID).val(currentStation.unitValue);
-        $('#' + varID).val(currentStation.varFactor);
-        $('#' + wipID).val(currentStation.wip[this.currentDay()]);
-        var canvas = "#" + stationGraphCanvasID;
-        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, null);
+};
 
+ViewModel.prototype.createStations = function () {
+    this.stationContainer = [];
+    for (var i = 0; i < this.numOfStations(); i++) {
+        var j = i + 1;
+            var currentStation = this.currentScenario.stations[i];
+            var stationContainerID = 'station' + j + '-container';
+            var capID = "station" + j + "cap";
+            var rangeID = "station" + j + "range";
+            var unitValID = "station" + j + "unitVal";
+            var varID = "station" + j + "var";
+            var wipID = "station" + j + "wip";
+            var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>';
+            var stationSettingsHTML = '<div id="station' + j + '-settings" class="settings">Station ' + j + ' Data' +
+                '<table><tr>' +
+                '<td>Base Capacity:</td>' +
+                '<td><input id="' + capID + '" type="text" name="' + capID + '"></td>' +
+                '</tr><tr>' +
+                '<td>Capacity Range:</td>' +
+                '<td><input id="' + rangeID + '" type="text" name="' + rangeID + '"></td>' +
+                '</tr><tr>' +
+                '<td>Variance Factor:</td>' +
+                '<td><input id="' + varID + '" type="text" name="' + varID + '"></td>' +
+                '</tr><tr>' +
+                '<td>Unit Value: </td>' +
+                '<td><input id="' + unitValID + '" type="text" name="' + unitValID + '"></td>' +
+                '</tr><tr>' +
+                '<td>Current WIP: </td>' +
+                '<td><input id="' + wipID + '" type="text" name="' + wipID + '"></td>' +
+                '</tr></table></div>';
+            var stationNetworkHTML = '<div id="station' + j + '-network" class="network-settings">' +
+                '</div>';
+            var stationGraphID = 'station' + j + '-graph';
+            var stationGraphCanvasID = 'station' + j + '-canvas';
+            var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
+                '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
+
+            $('#station-container').append(stationHTML);
+            $('#' + stationContainerID).append(stationSettingsHTML);
+
+            this.stationContainer.push({
+                stationContainer: $('#' + stationContainerID),
+                cap: $('#' + capID),
+                range: $('#' + rangeID),
+                unitVal: $('#' + unitValID),
+                varience: $('#' + varID),
+                wip: $('#' + wipID),
+            });
+            console.log(this.stationContainer);
+            this.stationContainer[i].stationContainer.append(stationNetworkHTML);
+            this.stationContainer[i].stationContainer.append(stationGraphHTML);
+            this.stationContainer[i].cap.val(currentStation.baseCapacity);
+            this.stationContainer[i].range.val(currentStation.capRange);
+            this.stationContainer[i].unitVal.val(currentStation.unitValue);
+            this.stationContainer[i].varience.val(currentStation.varFactor);
+            this.stationContainer[i].wip.val(currentStation.wip[this.currentDay()]);
+            var canvas = "#" + stationGraphCanvasID;
+           
+            currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, null);
+
+        
     }
 };
 
@@ -379,12 +415,21 @@ ViewModel.prototype.clearUI = function () {
 
 };
 
+ViewModel.prototype.clearStations = function () {
+    $('.station').remove();
+     self.stationContainer = [];
+     this.currentScenario.stations.forEach(function(station){
+         station.graph.destroy();
+     });
+};
+
 //updates the display with the most recent data
 ViewModel.prototype.updateData = function () {
     var day = this.currentDay();
     var scenario = this.currentScenario;
     scenario.days.push(day);
 
+if($('#showStationsCheckbox').is(':checked')){
     for (var i = 0; i < scenario.stations.length; i++) {
         var j = i + 1;
         var currentStation = scenario.stations[i];
@@ -408,6 +453,7 @@ ViewModel.prototype.updateData = function () {
             currentStation.graph.update();
         }
     }
+}
 
     scenario.graph.update();
 };
