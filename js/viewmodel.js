@@ -293,7 +293,7 @@ ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData
         case 'none':
             data = null;
             break;
-    };
+    }
 
     graph = chartHelper(canvas, output, missed, wip, data);
     return graph;
