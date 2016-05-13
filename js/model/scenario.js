@@ -27,7 +27,6 @@ var Model = function () {
 var ScenarioItem = function (data) {
     'use strict';
     var self = this;
-
     //initializes the scenario item.
     self.init = function () {
         self.stations = [];
@@ -49,6 +48,7 @@ var ScenarioItem = function (data) {
         self.maxStationWIP = 0;
         self.name = data.name;
         self.numOfDays = data.numOfDays;
+        self.simType = data.simType;
         self.numOfStations = 0;
 
         if (data.stations) {
@@ -63,8 +63,8 @@ var ScenarioItem = function (data) {
             });
         }
     };
-
-    self.init();
+    
+        self.init();
 
     //adds a station to our array of stations
     self.addStation = function (station) {

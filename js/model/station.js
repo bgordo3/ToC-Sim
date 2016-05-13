@@ -14,6 +14,7 @@ var StationItem = function (data) {
     self.prodValue = [];
     self.totalEff = [];
     self.wip = [];
+    self.reqResources =[];
 
     self.baseCapacity = 10;
     self.capRange = 5;
@@ -27,7 +28,6 @@ var StationItem = function (data) {
     if (self.initialData) {
         self.init(self.initialData);
     }
-
 
 };
 
@@ -60,7 +60,6 @@ StationItem.prototype.init = function (data) {
 StationItem.prototype.calcCapacity = function (day) {
     var min = this.baseCapacity - this.capRange;
     var max = this.baseCapacity + this.capRange;
-    var max = this.baseCapacity + this.capRange;
     var randOutput = 0;
     if (min < 0) {
         min = 0;
@@ -75,7 +74,7 @@ StationItem.prototype.calcWip = function (day, wipToAdd) {
     if (this.number == 1) {
         this.wip[day] = this.capacity[day];
     } else {
-        if (day != 0) {
+        if (day !== 0) {
             this.wip[day] = this.wip[day] + wipToAdd;
         }
     }
@@ -91,7 +90,7 @@ StationItem.prototype.calcEff = function (day) {
     var tempEffAvg = 0;
     this.eff[day] = this.output[day] / this.capacity[day];
     this.eff.forEach(function (val) {
-        tempEffAvg += val
+        tempEffAvg += val;
     });
     tempEffAvg = tempEffAvg / this.eff.length;
     this.totalEff[day] = tempEffAvg;

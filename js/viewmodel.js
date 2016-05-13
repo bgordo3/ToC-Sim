@@ -110,7 +110,6 @@ var ViewModel = function () {
                 });
                 break;
             default:
-                console.log(self.currentScenario.graph);
                 self.currentScenario.graph = self.createChart('#scenario-canvas ',
                     self.currentScenario.totalOutput,
                     self.currentScenario.totalMissedOp,
@@ -216,6 +215,7 @@ var ViewModel = function () {
             }
             self.currentScenario.updateTotals(self.currentDay());
             //update the GUI with new data
+            self.currentScenario.days.push(day);
             self.updateData();
             self.currentDay(self.currentDay() + 1);
         }
@@ -249,9 +249,12 @@ var ViewModel = function () {
 
     window.toggleStations = function () {
         if ($('#showStationsCheckbox').is(':checked')) {
-            self.createStations();
+            //self.createStations();
+            $('.station').show();
+            // self.updateData();
         } else {
-            self.clearStations();
+            // self.clearStations();
+            $('.station').hide();
         }
     };
 
@@ -325,7 +328,7 @@ ViewModel.prototype.buildUI = function () {
     self.$scenarioContainer.append(headerHTML);
     self.$scenarioContainer.append('<div id="graph-settings" class="graph-settings">' +
         'Graph Optional Line: ' +
-        '<select id="graph-option" onchange="changeGraph()">' +
+        '<select id="graph-option" class="select-box" onchange="changeGraph()">' +
         '<option value="None">None</option>' +
         '<option value="Efficiency">Efficiency</option>' +
         '<option value="WIP Inventory Value">WIP Inventory Value</option>' +
@@ -347,62 +350,61 @@ ViewModel.prototype.createStations = function () {
     this.stationContainer = [];
     for (var i = 0; i < this.numOfStations(); i++) {
         var j = i + 1;
-            var currentStation = this.currentScenario.stations[i];
-            var stationContainerID = 'station' + j + '-container';
-            var capID = "station" + j + "cap";
-            var rangeID = "station" + j + "range";
-            var unitValID = "station" + j + "unitVal";
-            var varID = "station" + j + "var";
-            var wipID = "station" + j + "wip";
-            var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>';
-            var stationSettingsHTML = '<div id="station' + j + '-settings" class="settings">Station ' + j + ' Data' +
-                '<table><tr>' +
-                '<td>Base Capacity:</td>' +
-                '<td><input id="' + capID + '" type="text" name="' + capID + '"></td>' +
-                '</tr><tr>' +
-                '<td>Capacity Range:</td>' +
-                '<td><input id="' + rangeID + '" type="text" name="' + rangeID + '"></td>' +
-                '</tr><tr>' +
-                '<td>Variance Factor:</td>' +
-                '<td><input id="' + varID + '" type="text" name="' + varID + '"></td>' +
-                '</tr><tr>' +
-                '<td>Unit Value: </td>' +
-                '<td><input id="' + unitValID + '" type="text" name="' + unitValID + '"></td>' +
-                '</tr><tr>' +
-                '<td>Current WIP: </td>' +
-                '<td><input id="' + wipID + '" type="text" name="' + wipID + '"></td>' +
-                '</tr></table></div>';
-            var stationNetworkHTML = '<div id="station' + j + '-network" class="network-settings">' +
-                '</div>';
-            var stationGraphID = 'station' + j + '-graph';
-            var stationGraphCanvasID = 'station' + j + '-canvas';
-            var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
-                '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
+        var currentStation = this.currentScenario.stations[i];
+        var stationContainerID = 'station' + j + '-container';
+        var capID = "station" + j + "cap";
+        var rangeID = "station" + j + "range";
+        var unitValID = "station" + j + "unitVal";
+        var varID = "station" + j + "var";
+        var wipID = "station" + j + "wip";
+        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>';
+        var stationSettingsHTML = '<div id="station' + j + '-settings" class="settings">Station ' + j + ' Data' +
+            '<table><tr>' +
+            '<td>Base Capacity:</td>' +
+            '<td><input id="' + capID + '" type="text" name="' + capID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Capacity Range:</td>' +
+            '<td><input id="' + rangeID + '" type="text" name="' + rangeID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Variance Factor:</td>' +
+            '<td><input id="' + varID + '" type="text" name="' + varID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Unit Value: </td>' +
+            '<td><input id="' + unitValID + '" type="text" name="' + unitValID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Current WIP: </td>' +
+            '<td><input id="' + wipID + '" type="text" name="' + wipID + '"></td>' +
+            '</tr></table></div>';
+        var stationNetworkHTML = '<div id="station' + j + '-network" class="network-settings">' +
+            '</div>';
+        var stationGraphID = 'station' + j + '-graph';
+        var stationGraphCanvasID = 'station' + j + '-canvas';
+        var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
+            '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
 
-            $('#station-container').append(stationHTML);
-            $('#' + stationContainerID).append(stationSettingsHTML);
+        $('#station-container').append(stationHTML);
+        $('#' + stationContainerID).append(stationSettingsHTML);
 
-            this.stationContainer.push({
-                stationContainer: $('#' + stationContainerID),
-                cap: $('#' + capID),
-                range: $('#' + rangeID),
-                unitVal: $('#' + unitValID),
-                varience: $('#' + varID),
-                wip: $('#' + wipID),
-            });
-            console.log(this.stationContainer);
-            this.stationContainer[i].stationContainer.append(stationNetworkHTML);
-            this.stationContainer[i].stationContainer.append(stationGraphHTML);
-            this.stationContainer[i].cap.val(currentStation.baseCapacity);
-            this.stationContainer[i].range.val(currentStation.capRange);
-            this.stationContainer[i].unitVal.val(currentStation.unitValue);
-            this.stationContainer[i].varience.val(currentStation.varFactor);
-            this.stationContainer[i].wip.val(currentStation.wip[this.currentDay()]);
-            var canvas = "#" + stationGraphCanvasID;
-           
-            currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, null);
+        this.stationContainer.push({
+            stationContainer: $('#' + stationContainerID),
+            cap: $('#' + capID),
+            range: $('#' + rangeID),
+            unitVal: $('#' + unitValID),
+            varience: $('#' + varID),
+            wip: $('#' + wipID),
+        });
+        this.stationContainer[i].stationContainer.append(stationNetworkHTML);
+        this.stationContainer[i].stationContainer.append(stationGraphHTML);
+        this.stationContainer[i].cap.val(currentStation.baseCapacity);
+        this.stationContainer[i].range.val(currentStation.capRange);
+        this.stationContainer[i].unitVal.val(currentStation.unitValue);
+        this.stationContainer[i].varience.val(currentStation.varFactor);
+        this.stationContainer[i].wip.val(currentStation.wip[this.currentDay()]);
+        var canvas = "#" + stationGraphCanvasID;
 
-        
+        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, null);
+
+
     }
 };
 
@@ -417,45 +419,41 @@ ViewModel.prototype.clearUI = function () {
 
 ViewModel.prototype.clearStations = function () {
     $('.station').remove();
-     self.stationContainer = [];
-     this.currentScenario.stations.forEach(function(station){
-         station.graph.destroy();
-     });
+    self.stationContainer = [];
+    this.currentScenario.stations.forEach(function (station) {
+        station.graph.destroy();
+    });
 };
 
 //updates the display with the most recent data
 ViewModel.prototype.updateData = function () {
     var day = this.currentDay();
     var scenario = this.currentScenario;
-    scenario.days.push(day);
 
-if($('#showStationsCheckbox').is(':checked')){
     for (var i = 0; i < scenario.stations.length; i++) {
         var j = i + 1;
         var currentStation = scenario.stations[i];
-        currentStation.graph.options.scales.yAxes[1].ticks.suggestedMax = (scenario.maxStationWIP);
-
         var capID = "station" + j + "cap";
         var rangeID = "station" + j + "range";
         var unitValID = "station" + j + "unitValue";
         var varID = "station" + j + "var";
         var wipID = "station" + j + "wip";
 
-
-
-        $('#' + capID).val(currentStation.baseCapacity);
-        $('#' + rangeID).val(currentStation.capRange);
-        $('#' + unitValID).val(currentStation.unitValue);
-        $('#' + varID).val(currentStation.varFactor);
-        $('#' + wipID).val(currentStation.wip[this.currentDay() + 1]);
+        this.stationContainer[i].cap.val(currentStation.baseCapacity);
+        this.stationContainer[i].range.val(currentStation.capRange);
+        this.stationContainer[i].unitVal.val(currentStation.unitValue);
+        this.stationContainer[i].varience.val(currentStation.varFactor);
+        this.stationContainer[i].wip.val(currentStation.wip[this.currentDay() + 1]);
 
         if (!self.finishProd) {
+            currentStation.graph.options.scales.yAxes[1].ticks.suggestedMax = (scenario.maxStationWIP);
             currentStation.graph.update();
+            scenario.graph.update();
         }
-    }
-}
 
-    scenario.graph.update();
+    }
+
+
 };
 
 ViewModel.prototype.loadScenario = function (scenario) {

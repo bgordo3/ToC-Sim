@@ -4,6 +4,7 @@ var Scenarios = [
     {
         name: 'Unbalanced Line',
         numOfDays: 30,
+        simType: 'normal',
         stations: [
             {
                 number: 1,
@@ -45,6 +46,7 @@ var Scenarios = [
     {
         name: 'Balanced Line',
         numOfDays: 30,
+        simType: 'normal',
         stations: [
             {
                 number: 1,
@@ -81,6 +83,7 @@ var Scenarios = [
     {
         name: 'One not Lean',
         numOfDays: 30,
+        simType: 'normal',
         stations: [
             {
                 number: 1,
@@ -117,6 +120,7 @@ var Scenarios = [
     {
         name: 'All stations are bad',
         numOfDays: 30,
+        simType: 'normal',
         stations: [
             {
                 number: 1,
@@ -152,7 +156,8 @@ var Scenarios = [
         },
     {
         name: "Scenario 5",
-        numOfDays: 30
+        numOfDays: 30,
+        simType: 'normal',
         },
     {
         name: "Scenario 6",
