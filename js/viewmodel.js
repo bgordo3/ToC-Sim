@@ -54,17 +54,20 @@ var ViewModel = function () {
         self.scenarioTitle("Custom Scenario");
     });
 
+    /**
+     * @description - updates the display based on the selected optional line.  
+     */
     window.changeGraph = function () {
-        var dataToGraph = null;
 
         //remove and re-add canvases to delete old chart.
         $('#scenario-canvas').remove();
         $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
         self.currentScenario.stations.forEach(function (station) {
-            $('#station' + station.number + '-canvas').remove();
-            $('#station' + station.number + '-graph').append(
-                '<canvas id="station' + station.number + '-canvas" class="canvas"></canvas></div>');
+            $('#station' + station.idNumber + '-canvas').remove();
+            $('#station' + station.idNumber + '-graph').append(
+                '<canvas id="station' + station.idNumber + '-canvas" class="canvas"></canvas></div>');
         });
+
 
         switch ($('#graph-option').val()) {
             case 'Production Value':
@@ -74,7 +77,7 @@ var ViewModel = function () {
                     self.currentScenario.totalWIP,
                     self.currentScenario.totalProdValue);
                 self.currentScenario.stations.forEach(function (station) {
-                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.graph = self.createChart('#station' + station.idNumber + '-canvas',
                         station.output,
                         station.missedOp,
                         station.wip,
@@ -88,7 +91,7 @@ var ViewModel = function () {
                     self.currentScenario.totalWIP,
                     self.currentScenario.totalWipValue);
                 self.currentScenario.stations.forEach(function (station) {
-                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.graph = self.createChart('#station' + station.idNumber + '-canvas',
                         station.output,
                         station.missedOp,
                         station.wip,
@@ -102,7 +105,7 @@ var ViewModel = function () {
                     self.currentScenario.totalWIP,
                     self.currentScenario.totalEff);
                 self.currentScenario.stations.forEach(function (station) {
-                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.graph = self.createChart('#station' + station.idNumber + '-canvas',
                         station.output,
                         station.missedOp,
                         station.wip,
@@ -116,7 +119,7 @@ var ViewModel = function () {
                     self.currentScenario.totalWIP,
                     null);
                 self.currentScenario.stations.forEach(function (station) {
-                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.graph = self.createChart('#station' + station.idNumber + '-canvas',
                         station.output,
                         station.missedOp,
                         station.wip,
@@ -144,7 +147,7 @@ var ViewModel = function () {
         //create stations with default data
         for (var i = 1; i <= self.numOfStations(); i++) {
             var data = {
-                number: i,
+                idNumber: i,
                 initWIP: 10,
                 baseCapacity: 10,
                 capRange: 0
@@ -374,7 +377,10 @@ ViewModel.prototype.createStations = function () {
             '</tr><tr>' +
             '<td>Current WIP: </td>' +
             '<td><input id="' + wipID + '" type="text" name="' + wipID + '"></td>' +
+            '</tr><tr>' +
+            '<td>Produces: </td><td>' + currentStation.unitName + '</td>' +
             '</tr></table></div>';
+              
         var stationNetworkHTML = '<div id="station' + j + '-network" class="network-settings">' +
             '</div>';
         var stationGraphID = 'station' + j + '-graph';

@@ -5,7 +5,6 @@ var app = app || {};
 var StationItem = function (data) {
     'use strict';
     var self = this;
-    self.initialData = data;
     self.capacity = [];
     self.eff = [];
     self.wipValue = [];
@@ -20,40 +19,49 @@ var StationItem = function (data) {
     self.capRange = 5;
     self.graph = null;
     self.maxWIP = 0;
-    self.number = data.number;
-    self.title = 'Station #' + self.number;
-    self.unitValue = data.number;
+    self.idNumber = data.idNumber;
+    self.title = 'Station #' + self.idNumber;
+    self.unitValue = data.idNumber;
     self.varFactor = 1;
+    self.unitName = '';
 
-    if (self.initialData) {
-        self.init(self.initialData);
+    if (data) {
+        this.init(data);
+        
     }
 
 };
 
-StationItem.prototype.init = function (data) {
+StationItem.prototype.init = function (_data) {
     //set inventory data if defined in scenario
-    if (data.initWIP) {
-        this.wip[0] = data.initWIP;
+    if (_data.initWIP) {
+        this.wip[0] = _data.initWIP;
     }
 
     //set baseCapacity data if defined in scenario
-    if (data.baseCapacity) {
-        this.baseCapacity = data.baseCapacity;
+    if (_data.baseCapacity) {
+        this.baseCapacity = _data.baseCapacity;
     }
 
     //set capRange if defined in scenario
-    if (data.capRange) {
-        this.capRange = data.capRange;
+    if (_data.capRange) {
+        this.capRange = _data.capRange;
     }
 
-    if (data.unitValue) {
-        this.unitValue = data.unitValue;
+    if (_data.unitValue) {
+        this.unitValue = _data.unitValue;
     }
 
-    if (data.varFactor) {
-        this.varFactor = data.varFactor;
+    if (_data.varFactor) {
+        this.varFactor = _data.varFactor;
     }
+        
+    if(_data.unitName){
+        this.unitName = _data.unitName;
+    }else{        
+        this.unitName = 'widget' + _data.idNumber;
+    }    
+
 };
 
 //calculations station capacity for the day based on baseCapacity and Sigma
@@ -71,7 +79,7 @@ StationItem.prototype.calcCapacity = function (day) {
 
 StationItem.prototype.calcWip = function (day, wipToAdd) {
     //if we're station 1, our WIP is our capacity
-    if (this.number == 1) {
+    if (this.idNumber == 1) {
         this.wip[day] = this.capacity[day];
     } else {
         if (day !== 0) {

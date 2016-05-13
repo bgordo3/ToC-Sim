@@ -7,35 +7,35 @@ var Scenarios = [
         simType: 'normal',
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 5,
                 varFactor: 2
                 },
             {
-                number: 2,
+                idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
                 varFactor: 2
                 },
             {
-                number: 3,
+                idNumber: 3,
                 baseCapacity: 3.5,
                 initWIP: 4,
                 capRange: 2.5,
                 varFactor: 1
                 },
             {
-                number: 4,
+                idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
                 varFactor: 2
                 },
             {
-                number: 5,
+                idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
@@ -49,31 +49,31 @@ var Scenarios = [
         simType: 'normal',
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 3
                 },
             {
-                number: 2,
+                idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 3
                 },
             {
-                number: 3,
+                idNumber: 3,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 3
                 },
             {
-                number: 4,
+                idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5
                 },
             {
-                number: 5,
+                idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5
@@ -86,31 +86,31 @@ var Scenarios = [
         simType: 'normal',
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 2
                 },
             {
-                number: 2,
+                idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 2
                 },
             {
-                number: 3,
+                idNumber: 3,
                 baseCapacity: 5,
                 initWIP: 4,
                 capRange: 5
                 },
             {
-                number: 4,
+                idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 2
                 },
             {
-                number: 5,
+                idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 2
@@ -123,31 +123,31 @@ var Scenarios = [
         simType: 'normal',
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 7
                 },
             {
-                number: 2,
+                idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 7
                 },
             {
-                number: 3,
+                idNumber: 3,
                 baseCapacity: 5,
                 initWIP: 4,
                 capRange: 7
                 },
             {
-                number: 4,
+                idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 7
                 },
             {
-                number: 5,
+                idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 7
@@ -164,19 +164,19 @@ var Scenarios = [
         numOfDays: 20,
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 10,
                 initWIP: 4,
                 capRange: 0
                 },
             {
-                number: 2,
+                idNumber: 2,
                 initWIP: 2,
                 baseCapacity: 5,
                 capRange: 0
                 },
             {
-                number: 3,
+                idNumber: 3,
                 initWIP: 1,
                 baseCapacity: 5,
                 capRange: 0
