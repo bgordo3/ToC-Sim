@@ -13,7 +13,7 @@ var ViewModel = function () {
 
 
     self.$scenarioContainer = null;
-    self.stationContainer = [];
+    self.queryContainer = [];
     self.model = new Model();
     self.currentScenario = null;
     self.scenarios = ko.observableArray();
@@ -67,7 +67,7 @@ var ViewModel = function () {
             $('#station' + station.idNumber + '-graph').append(
                 '<canvas id="station' + station.idNumber + '-canvas" class="canvas"></canvas></div>');
         });
-
+        var optDataToChart = null;
 
         switch ($('#graph-option').val()) {
             case 'Production Value':
@@ -350,68 +350,83 @@ ViewModel.prototype.buildUI = function () {
 };
 
 ViewModel.prototype.createStations = function () {
-    this.stationContainer = [];
+    var currentStation = null;
     for (var i = 0; i < this.numOfStations(); i++) {
         var j = i + 1;
-        var currentStation = this.currentScenario.stations[i];
+        currentStation = this.currentScenario.stations[i];
         var stationContainerID = 'station' + j + '-container';
         var capID = "station" + j + "cap";
         var rangeID = "station" + j + "range";
         var unitValID = "station" + j + "unitVal";
         var varID = "station" + j + "var";
         var wipID = "station" + j + "wip";
-        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>';
-        var stationSettingsHTML = '<div id="station' + j + '-settings" class="settings">Station ' + j + ' Data' +
-            '<table><tr>' +
-            '<td>Base Capacity:</td>' +
-            '<td><input id="' + capID + '" type="text" name="' + capID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Capacity Range:</td>' +
-            '<td><input id="' + rangeID + '" type="text" name="' + rangeID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Variance Factor:</td>' +
-            '<td><input id="' + varID + '" type="text" name="' + varID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Unit Value: </td>' +
-            '<td><input id="' + unitValID + '" type="text" name="' + unitValID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Current WIP: </td>' +
-            '<td><input id="' + wipID + '" type="text" name="' + wipID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Produces: </td><td>' + currentStation.unitName + '</td>' +
-            '</tr></table></div>';
-              
-        var stationNetworkHTML = '<div id="station' + j + '-network" class="network-settings">' +
-            '</div>';
-        var stationGraphID = 'station' + j + '-graph';
-        var stationGraphCanvasID = 'station' + j + '-canvas';
-        var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
-            '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
 
-        $('#station-container').append(stationHTML);
-        $('#' + stationContainerID).append(stationSettingsHTML);
+        $('#station-container').append('<div id="' + stationContainerID + '" class="station"></div>');
 
-        this.stationContainer.push({
-            stationContainer: $('#' + stationContainerID),
-            cap: $('#' + capID),
-            range: $('#' + rangeID),
-            unitVal: $('#' + unitValID),
-            varience: $('#' + varID),
-            wip: $('#' + wipID),
-        });
-        this.stationContainer[i].stationContainer.append(stationNetworkHTML);
-        this.stationContainer[i].stationContainer.append(stationGraphHTML);
-        this.stationContainer[i].cap.val(currentStation.baseCapacity);
-        this.stationContainer[i].range.val(currentStation.capRange);
-        this.stationContainer[i].unitVal.val(currentStation.unitValue);
-        this.stationContainer[i].varience.val(currentStation.varFactor);
-        this.stationContainer[i].wip.val(currentStation.wip[this.currentDay()]);
-        var canvas = "#" + stationGraphCanvasID;
+        var settingIdTags = {
+            containerIdTag: 'station' + j + '-container',
+            capIdTag: capID,
+            rangeIdTag: rangeID,
+            unitValIdTag: unitValID,
+            varienceIdTag: varID,
+            wipIdTag: wipID
+        };
 
-        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, null);
-
+        this.createStationSettings(currentStation, settingIdTags);
+        this.createStationNetwork(currentStation);
+        this.createStationGraph(currentStation);
 
     }
+
+};
+
+ViewModel.prototype.createStationSettings = function (station, tagData) {
+    var stationSettingsHTML = '<div id="station' + station.idNumber + '-settings" class="settings">Station ' + station.idNumber + ' Data' +
+        '<table><tr><td>Base Capacity:</td>' +
+        '<td><input id="' + tagData.capIdTag + '" type="text" name="' + tagData.capIdTag + '"></td>' +
+        '</tr><tr><td>Capacity Range:</td>' +
+        '<td><input id="' + tagData.rangeIdTag + '" type="text" name="' + tagData.rangeIdTag + '"></td>' +
+        '</tr><tr><td>Variance Factor:</td>' +
+        '<td><input id="' + tagData.varienceIdTag + '" type="text" name="' + tagData.varienceIdTag + '"></td>' +
+        '</tr><tr><td>Unit Value: </td>' +
+        '<td><input id="' + tagData.unitValIdTag + '" type="text" name="' + tagData.unitValIdTag + '"></td>' +
+        '</tr><tr><td>Current WIP: </td>' +
+        '<td><input id="' + tagData.wipIdTag + '" type="text" name="' + tagData.wipIdTag + '"></td>' +
+        '</tr><tr><td>Produces: </td><td>' + station.unitName + '</td>' +
+        '</tr></table></div>';
+    $('#' + tagData.containerIdTag).append(stationSettingsHTML);
+
+    var myQueryContainer = {
+            stationContainer: $('#' + tagData.containerIdTag),
+            cap: $('#' + tagData.capIdTag),
+            range: $('#' + tagData.rangeIdTag),
+            unitVal: $('#' + tagData.unitValIdTag),
+            varience: $('#' + tagData.varienceIdTag),
+            wip: $('#' + tagData.wipIdTag)
+        };
+    this.queryContainer.push(myQueryContainer);
+  
+    myQueryContainer.cap.val(station.baseCapacity);
+    myQueryContainer.range.val(station.capRange);
+    myQueryContainer.unitVal.val(station.unitValue);
+    myQueryContainer.varience.val(station.varFactor);
+    myQueryContainer.wip.val(station.wip[this.currentDay()]);
+};
+ViewModel.prototype.createStationNetwork = function (station) {
+    var stationNetworkHTML = '<div id="station' + station.idNumber + '-network" class="network-settings">' +
+        '</div>';
+    this.queryContainer[station.idNumber - 1].stationContainer.append(stationNetworkHTML);
+};
+ViewModel.prototype.createStationGraph = function (station) {
+    var j = station.idNumber - 1;
+    var stationGraphID = 'station' + station.idNumber + '-graph';
+    var stationGraphCanvasID = 'station' + station.idNumber + '-canvas';
+    var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
+        '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
+    var canvas = "#" + stationGraphCanvasID;
+
+    this.queryContainer[j].stationContainer.append(stationGraphHTML);
+    station.graph = this.createChart(canvas, station.output, station.missedOp, station.wip, null);
 };
 
 ViewModel.prototype.clearUI = function () {
@@ -439,27 +454,18 @@ ViewModel.prototype.updateData = function () {
     for (var i = 0; i < scenario.stations.length; i++) {
         var j = i + 1;
         var currentStation = scenario.stations[i];
-        var capID = "station" + j + "cap";
-        var rangeID = "station" + j + "range";
-        var unitValID = "station" + j + "unitValue";
-        var varID = "station" + j + "var";
-        var wipID = "station" + j + "wip";
-
-        this.stationContainer[i].cap.val(currentStation.baseCapacity);
-        this.stationContainer[i].range.val(currentStation.capRange);
-        this.stationContainer[i].unitVal.val(currentStation.unitValue);
-        this.stationContainer[i].varience.val(currentStation.varFactor);
-        this.stationContainer[i].wip.val(currentStation.wip[this.currentDay() + 1]);
+        this.queryContainer[i].cap.val(currentStation.baseCapacity);
+        this.queryContainer[i].range.val(currentStation.capRange);
+        this.queryContainer[i].unitVal.val(currentStation.unitValue);
+        this.queryContainer[i].varience.val(currentStation.varFactor);
+        this.queryContainer[i].wip.val(currentStation.wip[this.currentDay() + 1]);
 
         if (!self.finishProd) {
             currentStation.graph.options.scales.yAxes[1].ticks.suggestedMax = (scenario.maxStationWIP);
             currentStation.graph.update();
             scenario.graph.update();
         }
-
     }
-
-
 };
 
 ViewModel.prototype.loadScenario = function (scenario) {

@@ -13,7 +13,7 @@ var StationItem = function (data) {
     self.prodValue = [];
     self.totalEff = [];
     self.wip = [];
-    self.reqResources =[];
+    self.reqResources = [];
 
     self.baseCapacity = 10;
     self.capRange = 5;
@@ -24,43 +24,38 @@ var StationItem = function (data) {
     self.unitValue = data.idNumber;
     self.varFactor = 1;
     self.unitName = '';
-
+    
     if (data) {
-        this.init(data);
-        
-    }
+        //set inventory data if defined in scenario
+        if (data.initWIP) {
+            self.wip[0] = parseInt(data.initWIP);
+        }
 
-};
 
-StationItem.prototype.init = function (_data) {
-    //set inventory data if defined in scenario
-    if (_data.initWIP) {
-        this.wip[0] = _data.initWIP;
-    }
+        //set baseCapacity data if defined in scenario
+        if (data.baseCapacity) {
+            self.baseCapacity = data.baseCapacity;
+        }
 
-    //set baseCapacity data if defined in scenario
-    if (_data.baseCapacity) {
-        this.baseCapacity = _data.baseCapacity;
-    }
+        //set capRange if defined in scenario
+        if (data.capRange) {
+            self.capRange = data.capRange;
+        }
 
-    //set capRange if defined in scenario
-    if (_data.capRange) {
-        this.capRange = _data.capRange;
-    }
+        if (data.unitValue) {
+            self.unitValue = data.unitValue;
+        }
 
-    if (_data.unitValue) {
-        this.unitValue = _data.unitValue;
-    }
+        if (data.varFactor) {
+            self.varFactor = data.varFactor;
+        }
 
-    if (_data.varFactor) {
-        this.varFactor = _data.varFactor;
+        if (data.unitName) {
+            self.unitName = data.unitName;
+        } else {
+            self.unitName = 'widget' + data.idNumber;
+        }
     }
-        
-    if(_data.unitName){
-        this.unitName = _data.unitName;
-    }else{        
-        this.unitName = 'widget' + _data.idNumber;
-    }    
 
 };
 
