@@ -24,6 +24,7 @@ var ViewModel = function () {
     self.finishProd = false;
     $customSettings.toggle(false);
 
+
     //populate locations observable container with data from model. We first create a blank scenario object,
     //then initialize it with the data our scenario definitions.
     this.model.getAllScenarios().forEach(function (scen) {
@@ -155,13 +156,13 @@ var ViewModel = function () {
             var tempStation = new StationItem(data);
             scenario.addStation(tempStation);
         }
+        scenario.simType = $('#simType').val();
         self.loadScenario(scenario);
     };
 
     window.reload = function () {
         self.currentDay(0);
         self.currentScenario.reload();
-        self.clearUI();
         self.buildUI();
 
     };
@@ -261,6 +262,10 @@ var ViewModel = function () {
         }
     };
 
+    window.updateNetwork = function () {
+        console.log(self.currentScenario.resourceList);
+    };
+
     $(document).ready(function () {
         self.loadScenario(self.scenarios()[0]);
         var i = 0;
@@ -268,6 +273,7 @@ var ViewModel = function () {
             runProduction();
         }
     });
+
 };
 
 ViewModel.prototype = Object.create(ViewModel.prototype);
@@ -318,7 +324,6 @@ ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData
 };
 
 ViewModel.prototype.buildUI = function () {
-    this.clearUI();
     if (!self.$scenarioContainer) {
         self.$scenarioContainer = $('#scenario-container');
     }
@@ -336,7 +341,8 @@ ViewModel.prototype.buildUI = function () {
         '<option value="Efficiency">Efficiency</option>' +
         '<option value="WIP Inventory Value">WIP Inventory Value</option>' +
         '<option value="Production Value">Production Value</option>' +
-        '</select>');
+        '</select>' +
+        '<p><button id="load-network-button" type="button" onclick="updateNetwork()">UpdateNetwork</button><p></div>');
     self.$scenarioContainer.append('<div id="scenario-graph" class="graph"></div>');
     $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
 
@@ -346,6 +352,22 @@ ViewModel.prototype.buildUI = function () {
     if ($('#showStationsCheckbox').is(':checked')) {
         this.createStations();
     }
+
+};
+
+
+ViewModel.prototype.clearUI = function () {
+    // $('.settings').remove();
+    // $('.graph').remove();
+    // $('.station').remove();
+    // $('.canvas').remove();
+    // $('.control').addClass("hidden");
+    $('#scenario-settings').remove();
+    $('#graph-settings').remove();
+    $('#scenario-graph').remove();
+    $('#scenario-canvas').remove();
+    $('.control').addClass("hidden");
+    this.clearStations();
 
 };
 
@@ -360,16 +382,18 @@ ViewModel.prototype.createStations = function () {
         var unitValID = "station" + j + "unitVal";
         var varID = "station" + j + "var";
         var wipID = "station" + j + "wip";
+        var outputID = "station" + j + "outputName";
 
         $('#station-container').append('<div id="' + stationContainerID + '" class="station"></div>');
 
         var settingIdTags = {
-            containerIdTag: 'station' + j + '-container',
+            containerIdTag: stationContainerID,
             capIdTag: capID,
             rangeIdTag: rangeID,
             unitValIdTag: unitValID,
             varienceIdTag: varID,
-            wipIdTag: wipID
+            wipIdTag: wipID,
+            outputNameIdTag: outputID,
         };
 
         this.createStationSettings(currentStation, settingIdTags);
@@ -392,31 +416,55 @@ ViewModel.prototype.createStationSettings = function (station, tagData) {
         '<td><input id="' + tagData.unitValIdTag + '" type="text" name="' + tagData.unitValIdTag + '"></td>' +
         '</tr><tr><td>Current WIP: </td>' +
         '<td><input id="' + tagData.wipIdTag + '" type="text" name="' + tagData.wipIdTag + '"></td>' +
-        '</tr><tr><td>Produces: </td><td>' + station.unitName + '</td>' +
-        '</tr></table></div>';
+        '</tr><tr><td>Produces: </td><td><input id="' + tagData.outputNameIdTag + '" type="text" name="' + tagData.outputNameIdTag + '"></td>'
+    '</tr></table></div>';
     $('#' + tagData.containerIdTag).append(stationSettingsHTML);
 
     var myQueryContainer = {
-            stationContainer: $('#' + tagData.containerIdTag),
-            cap: $('#' + tagData.capIdTag),
-            range: $('#' + tagData.rangeIdTag),
-            unitVal: $('#' + tagData.unitValIdTag),
-            varience: $('#' + tagData.varienceIdTag),
-            wip: $('#' + tagData.wipIdTag)
-        };
+        stationContainer: $('#' + tagData.containerIdTag),
+        cap: $('#' + tagData.capIdTag),
+        range: $('#' + tagData.rangeIdTag),
+        unitVal: $('#' + tagData.unitValIdTag),
+        varience: $('#' + tagData.varienceIdTag),
+        wip: $('#' + tagData.wipIdTag),
+        outputName: $('#' + tagData.outputNameIdTag)
+    };
     this.queryContainer.push(myQueryContainer);
-  
+
     myQueryContainer.cap.val(station.baseCapacity);
     myQueryContainer.range.val(station.capRange);
     myQueryContainer.unitVal.val(station.unitValue);
     myQueryContainer.varience.val(station.varFactor);
     myQueryContainer.wip.val(station.wip[this.currentDay()]);
+    myQueryContainer.outputName.val(station.unitName());
 };
+
 ViewModel.prototype.createStationNetwork = function (station) {
     var stationNetworkHTML = '<div id="station' + station.idNumber + '-network" class="network-settings">' +
         '</div>';
     this.queryContainer[station.idNumber - 1].stationContainer.append(stationNetworkHTML);
+    if (this.currentScenario.simType === "Network") {
+        var stationNetworkContainer = $('#station' + station.idNumber + '-network');
+        stationNetworkContainer.append('<p>Required Resources</p><table>');
+        this.currentScenario.resourceList.forEach(function (resource) {
+            if (resource.name !== station.unitName()) {
+                var checkId = 'station' + station.idNumber + resource.name + 'check';
+                stationNetworkContainer.append(
+                    '<tr><td>' +
+                    '<input type= "checkbox" id=' + checkId + ' checked="unchecked"></input></td>' +
+                    '<td>' + resource.name + '</td>' +
+                    '<td></tr>'
+                )
+                stationNetworkContainer.append('</table>');
+            }
+        });
+        this.currentScenario.resourceList.forEach(function (x) {
+            var checkId = 'station' + station.idNumber + x.name + 'check';
+            $('#' + checkId).attr('checked', false);
+        });
+    }
 };
+
 ViewModel.prototype.createStationGraph = function (station) {
     var j = station.idNumber - 1;
     var stationGraphID = 'station' + station.idNumber + '-graph';
@@ -429,14 +477,6 @@ ViewModel.prototype.createStationGraph = function (station) {
     station.graph = this.createChart(canvas, station.output, station.missedOp, station.wip, null);
 };
 
-ViewModel.prototype.clearUI = function () {
-    $('.settings').remove();
-    $('.graph').remove();
-    $('.station').remove();
-    $('.canvas').remove();
-    $('.control').addClass("hidden");
-
-};
 
 ViewModel.prototype.clearStations = function () {
     $('.station').remove();
@@ -468,16 +508,42 @@ ViewModel.prototype.updateData = function () {
     }
 };
 
+
 ViewModel.prototype.loadScenario = function (scenario) {
+    if (this.currentScenario !== null) {
+        this.clearUI();
+        this.currentScenario = null;
+    }
     if (this.$nav) {
         this.$nav.removeClass('open');
         this.$customSettings.toggle(false);
     }
+    scenario.stations.forEach(function (station) {
+        var addResource = true;
+        if (station.idNumber < scenario.numOfStations) {
+            scenario.resourceList.forEach(function (resource) {
+                if (station.unitName === resource.name) {
+                    resource.provider.push(station);
+                    addResouce = false;
+                }
+            });
+        }
+        if (addResource) {
+            //not in our resource list, so let's add it.
+            var tempResource = new ResourceItem();
+            tempResource.name = station.unitName();
+            tempResource.provider = [];
+            tempResource.provider.push(station);
+            scenario.resourceList.push(tempResource);
+        }
+    });
+
+    this.scenarioTitle(scenario.name);
+    this.numOfStations(scenario.numOfStations);
+    this.numOfDays(scenario.numOfDays);
     this.currentScenario = scenario;
-    this.scenarioTitle(this.currentScenario.name);
-    this.numOfStations(this.currentScenario.numOfStations);
-    this.numOfDays(this.currentScenario.numOfDays);
     this.buildUI();
+
 };
 
 //instaniate our controller

@@ -4,8 +4,8 @@ var app = app || {};
 
 //Defines our Station objects. 
 var ResourceItem = function () {
-    var name ='';
-    var provider = [];
-    var required = 1;
-    var priority = 0;
+    var name = '',
+        provider = [0],
+        required = 1,
+        priority = 0;
 };

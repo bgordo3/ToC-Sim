@@ -1,4 +1,4 @@
-/*global $, Scenarios */
+/*global $, Scenarios, ko */
 var app = app || {};
 
 /**
@@ -39,6 +39,7 @@ var ScenarioItem = function (data) {
         self.totalProdValue = [];
         self.totalWIP = [];
         self.totalWipValue = [];
+        self.resourceList = [];
 
         self.cummOutput = 0;
         self.cummCapacity = 0;
@@ -71,7 +72,7 @@ var ScenarioItem = function (data) {
         self.stations.push(station);
         self.numOfStations = self.numOfStations + 1;
     };
-
+    
     //re-initializes this scenario
     self.reload = function () {
         self.init();
@@ -102,5 +103,5 @@ var ScenarioItem = function (data) {
         self.totalEff[day] = self.cummOutput / self.cummCapacity;
 
     };
-
+    
 };

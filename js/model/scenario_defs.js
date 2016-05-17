@@ -4,7 +4,7 @@ var Scenarios = [
     {
         name: 'Unbalanced Line',
         numOfDays: 30,
-        simType: 'normal',
+        simType: 'Network',
         stations: [
             {
                 idNumber: 1,

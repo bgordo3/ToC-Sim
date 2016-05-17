@@ -23,7 +23,7 @@ var StationItem = function (data) {
     self.title = 'Station #' + self.idNumber;
     self.unitValue = data.idNumber;
     self.varFactor = 1;
-    self.unitName = '';
+    self.unitName=ko.observable();
     
     if (data) {
         //set inventory data if defined in scenario
@@ -50,10 +50,11 @@ var StationItem = function (data) {
             self.varFactor = data.varFactor;
         }
 
-        if (data.unitName) {
-            self.unitName = data.unitName;
+        if (data.unitName){
+            self.unitName(data.unitName);
         } else {
-            self.unitName = 'widget' + data.idNumber;
+          self.unitName('widget' + data.idNumber);
+          
         }
     }
 
@@ -148,4 +149,8 @@ StationItem.prototype.genNormal = function (a, b, c) {
         total += capacity;
     }
     return Math.floor(total / c);
+};
+
+StationItem.prototype.addResource = function (resource){
+    this.reqResources.push(resource);
 };
