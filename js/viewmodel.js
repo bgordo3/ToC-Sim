@@ -416,7 +416,7 @@ ViewModel.prototype.createStationSettings = function (station, tagData) {
         '<td><input id="' + tagData.unitValIdTag + '" class="input-box" type="text" name="' + tagData.unitValIdTag + '"></td>' +
         '</tr><tr><td>Current WIP: </td>' +
         '<td><input id="' + tagData.wipIdTag + '" class="input-box" type="text" name="' + tagData.wipIdTag + '"></td>' +
-        '</tr><tr><td>Produces: </td><td><input id="' + tagData.outputNameIdTag + '" class="input-box" type="text" name="' + tagData.outputNameIdTag + '"></td>'
+        '</tr><tr><td>Produces: </td><td><input id="' + tagData.outputNameIdTag + '" class="input-box" type="text" name="' + tagData.outputNameIdTag + '"></td>' +
     '</tr></table></div>';
     $('#' + tagData.containerIdTag).append(stationSettingsHTML);
 
