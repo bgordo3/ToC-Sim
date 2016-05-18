@@ -263,7 +263,7 @@ var ViewModel = function () {
     };
 
     window.updateNetwork = function () {
-        console.log(self.currentScenario.resourceList);
+
     };
 
     $(document).ready(function () {
@@ -407,16 +407,16 @@ ViewModel.prototype.createStations = function () {
 ViewModel.prototype.createStationSettings = function (station, tagData) {
     var stationSettingsHTML = '<div id="station' + station.idNumber + '-settings" class="settings">Station ' + station.idNumber + ' Data' +
         '<table><tr><td>Base Capacity:</td>' +
-        '<td><input id="' + tagData.capIdTag + '" type="text" name="' + tagData.capIdTag + '"></td>' +
+        '<td><input id="' + tagData.capIdTag + '" class="input-box" type="text" name="' + tagData.capIdTag + '"></td>' +
         '</tr><tr><td>Capacity Range:</td>' +
-        '<td><input id="' + tagData.rangeIdTag + '" type="text" name="' + tagData.rangeIdTag + '"></td>' +
+        '<td><input id="' + tagData.rangeIdTag + '" class="input-box" type="text" name="' + tagData.rangeIdTag + '"></td>' +
         '</tr><tr><td>Variance Factor:</td>' +
-        '<td><input id="' + tagData.varienceIdTag + '" type="text" name="' + tagData.varienceIdTag + '"></td>' +
+        '<td><input id="' + tagData.varienceIdTag + '" class="input-box" type="text" name="' + tagData.varienceIdTag + '"></td>' +
         '</tr><tr><td>Unit Value: </td>' +
-        '<td><input id="' + tagData.unitValIdTag + '" type="text" name="' + tagData.unitValIdTag + '"></td>' +
+        '<td><input id="' + tagData.unitValIdTag + '" class="input-box" type="text" name="' + tagData.unitValIdTag + '"></td>' +
         '</tr><tr><td>Current WIP: </td>' +
-        '<td><input id="' + tagData.wipIdTag + '" type="text" name="' + tagData.wipIdTag + '"></td>' +
-        '</tr><tr><td>Produces: </td><td><input id="' + tagData.outputNameIdTag + '" type="text" name="' + tagData.outputNameIdTag + '"></td>'
+        '<td><input id="' + tagData.wipIdTag + '" class="input-box" type="text" name="' + tagData.wipIdTag + '"></td>' +
+        '</tr><tr><td>Produces: </td><td><input id="' + tagData.outputNameIdTag + '" class="input-box" type="text" name="' + tagData.outputNameIdTag + '"></td>'
     '</tr></table></div>';
     $('#' + tagData.containerIdTag).append(stationSettingsHTML);
 
@@ -445,22 +445,37 @@ ViewModel.prototype.createStationNetwork = function (station) {
     this.queryContainer[station.idNumber - 1].stationContainer.append(stationNetworkHTML);
     if (this.currentScenario.simType === "Network") {
         var stationNetworkContainer = $('#station' + station.idNumber + '-network');
-        stationNetworkContainer.append('<p>Required Resources</p><table>');
+        stationNetworkContainer.append('<table class="resource-table">' + 
+                            '<tr><td>Resource</td><td>Amount</td></tr>');
         this.currentScenario.resourceList.forEach(function (resource) {
             if (resource.name !== station.unitName()) {
                 var checkId = 'station' + station.idNumber + resource.name + 'check';
+                var reqAmountId = 'station' + station.idNumber + resource.name + 'amount';
                 stationNetworkContainer.append(
                     '<tr><td>' +
-                    '<input type= "checkbox" id=' + checkId + ' checked="unchecked"></input></td>' +
+                    '<input type="checkbox" id=' + checkId + ' checked="unchecked" ></input></td>' +
                     '<td>' + resource.name + '</td>' +
-                    '<td></tr>'
-                )
+                    '<td><input type="text" id=' + reqAmountId + ' class="input-box hidden" ></td></tr>'
+                );
                 stationNetworkContainer.append('</table>');
+
             }
+            
         });
-        this.currentScenario.resourceList.forEach(function (x) {
-            var checkId = 'station' + station.idNumber + x.name + 'check';
+        this.currentScenario.resourceList.forEach(function (resource) {
+            var checkId = 'station' + station.idNumber + resource.name + 'check';
+             var reqAmountId = 'station' + station.idNumber + resource.name + 'amount';
             $('#' + checkId).attr('checked', false);
+           $('#' + checkId).click(function(){
+                   if($(this).is(':checked')){
+                         $('#'+reqAmountId).removeClass('hidden');
+                         if($('#'+reqAmountId).val() === ''){
+                             $('#'+reqAmountId).val(1);                           
+                         }
+                       } else {
+                       $('#'+reqAmountId).addClass('hidden');
+                      }
+                });
         });
     }
 };
@@ -522,11 +537,13 @@ ViewModel.prototype.loadScenario = function (scenario) {
         var addResource = true;
         if (station.idNumber < scenario.numOfStations) {
             scenario.resourceList.forEach(function (resource) {
-                if (station.unitName === resource.name) {
+                if (station.unitName() === resource.name) {
                     resource.provider.push(station);
-                    addResouce = false;
+                    addResource = false;
                 }
             });
+        }else{
+            addResource = false;
         }
         if (addResource) {
             //not in our resource list, so let's add it.
@@ -537,6 +554,7 @@ ViewModel.prototype.loadScenario = function (scenario) {
             scenario.resourceList.push(tempResource);
         }
     });
+    console.log(scenario.resourceList);
 
     this.scenarioTitle(scenario.name);
     this.numOfStations(scenario.numOfStations);

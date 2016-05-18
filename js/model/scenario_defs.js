@@ -11,35 +11,40 @@ var Scenarios = [
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 5,
-                varFactor: 2
+                varFactor: 2,
+                unitName: 'copperOre'
                 },
             {
                 idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
-                varFactor: 2
+                varFactor: 2,
+                unitName: 'ironOre'
                 },
             {
                 idNumber: 3,
                 baseCapacity: 3.5,
                 initWIP: 4,
                 capRange: 2.5,
-                varFactor: 1
+                varFactor: 1,
+                unitName: 'ironBolt'
                 },
             {
                 idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
-                varFactor: 2
+                varFactor: 2,
+                unitName: 'ironBolt'
                 },
             {
                 idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
-                varFactor: 2
+                varFactor: 2,
+                unitName: 'seaforiumCharge'
                 }
             ]
         },
