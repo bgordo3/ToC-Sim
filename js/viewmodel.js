@@ -469,7 +469,7 @@ ViewModel.prototype.createStationNetwork = function (station) {
 
         this.currentScenario.resourceList.forEach(function (resource) {
                 var checkId = 'station' + station.idNumber + 'res'+ resource.idNumber + 'check';
-                var reqAmountId = 'station' + station.idNumber + 'res'+ resource.idNumber+ 'amount';
+                var reqAmountId = 'station' + station.idNumber + 'res'+ resource.idNumber + 'amount';
             $('#' + checkId).attr('checked', false);
             $('#' + checkId).click(function () {
                 if ($(this).is(':checked')) {
@@ -547,8 +547,9 @@ ViewModel.prototype.addStationToResourceList = function (station) {
         var tempResource = new ResourceItem();
         tempResource.name = station.unitName;
         tempResource.providerList = [];
-        tempResource.addProvider(station);
-        tempResource.idNumber = self.resourceIdCounter++;
+        tempResource.addProvider(station);      
+        tempResource.idNumber = app.viewModel.resourceIdCounter;
+         app.viewModel.resourceIdCounter += 1;
         app.viewModel.currentScenario.resourceList.splice(station.idNumber-1,0,tempResource);
     }
 };
