@@ -23,7 +23,7 @@ var StationItem = function (data) {
     self.title = 'Station #' + self.idNumber;
     self.unitValue = data.idNumber;
     self.varFactor = 1;
-    self.unitName=ko.observable();
+    self.unitName= '';
     
     if (data) {
         //set inventory data if defined in scenario
@@ -51,9 +51,9 @@ var StationItem = function (data) {
         }
 
         if (data.unitName){
-            self.unitName(data.unitName);
+            self.unitName = data.unitName;
         } else {
-          self.unitName('widget' + data.idNumber);
+          self.unitName = 'widget' + data.idNumber;
           
         }
     }
