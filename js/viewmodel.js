@@ -5,7 +5,7 @@ var app = app || {};
 var ViewModel = function () {
     'use strict';
     var self = this,
-        $main = $('#map-container'),
+        $main = $('#sim-container'),
         $nav = $('#menu-container'),
         $menuButton = $('#menu-button-container'),
         $customScenario = $('#custom'),
@@ -250,7 +250,7 @@ var ViewModel = function () {
     };
 
     window.menuClick = function () {
-         $nav.removeClass('open');
+        $nav.removeClass('open');
         self.loadScenario(this);
     };
 
@@ -267,17 +267,18 @@ var ViewModel = function () {
 
     window.updateNetwork = function () {
 
-    };
+    };  
+    
+s};
 
-    // $(document).ready(function () {
-    //     self.loadScenario(self.scenarios()[0]);
-    //     var i = 0;
-    //     for (i; i < 5; i++) {
-    //         runProduction();
-    //     }
-    // });
+// $(document).ready(function () {
+//     self.loadScenario(self.scenarios()[0]);
+//     var i = 0;
+//     for (i; i < 5; i++) {
+//         runProduction();
+//     }
+// });
 
-};
 
 ViewModel.prototype = Object.create(ViewModel.prototype);
 
@@ -364,7 +365,7 @@ ViewModel.prototype.clearUI = function () {
     $('#scenario-graph').remove();
     $('#scenario-canvas').remove();
     $('.control').addClass("hidden");
-    };
+};
 
 ViewModel.prototype.createStations = function () {
     var currentStation = null;
@@ -449,8 +450,8 @@ ViewModel.prototype.createStationNetwork = function (station) {
             '<tr><td>Resource</td><td>Amount</td></tr>');
         this.currentScenario.resourceList.forEach(function (resource) {
             if (resource.name !== station.unitName) {
-                var checkId = 'station' + station.idNumber + 'res'+ resource.idNumber + 'check';
-                var reqAmountId = 'station' + station.idNumber + 'res'+ resource.idNumber+ 'amount';
+                var checkId = 'station' + station.idNumber + 'res' + resource.idNumber + 'check';
+                var reqAmountId = 'station' + station.idNumber + 'res' + resource.idNumber + 'amount';
                 stationNetworkContainer.append(
                     '<tr><td>' +
                     '<input type="checkbox" id=' + checkId + ' checked="unchecked" ></input></td>' +
@@ -464,8 +465,8 @@ ViewModel.prototype.createStationNetwork = function (station) {
         });
 
         this.currentScenario.resourceList.forEach(function (resource) {
-                var checkId = 'station' + station.idNumber + 'res'+ resource.idNumber + 'check';
-                var reqAmountId = 'station' + station.idNumber + 'res'+ resource.idNumber + 'amount';
+            var checkId = 'station' + station.idNumber + 'res' + resource.idNumber + 'check';
+            var reqAmountId = 'station' + station.idNumber + 'res' + resource.idNumber + 'amount';
             $('#' + checkId).attr('checked', false);
             $('#' + checkId).click(function () {
                 if ($(this).is(':checked')) {
@@ -502,11 +503,11 @@ ViewModel.prototype.createStationGraph = function (station) {
 
 
 ViewModel.prototype.clearStations = function () {
-        $('.station').remove();
+    $('.station').remove();
     this.queryContainer = [];
     this.currentScenario.stations.forEach(function (station) {
-        if(station.graph){
-        station.graph.destroy();
+        if (station.graph) {
+            station.graph.destroy();
         }
     });
 
@@ -547,10 +548,10 @@ ViewModel.prototype.addStationToResourceList = function (station) {
         var tempResource = new ResourceItem();
         tempResource.name = station.unitName;
         tempResource.providerList = [];
-        tempResource.addProvider(station);      
+        tempResource.addProvider(station);
         tempResource.idNumber = app.viewModel.resourceIdCounter;
-         app.viewModel.resourceIdCounter += 1;
-        app.viewModel.currentScenario.resourceList.splice(station.idNumber-1,0,tempResource);
+        app.viewModel.resourceIdCounter += 1;
+        app.viewModel.currentScenario.resourceList.splice(station.idNumber - 1, 0, tempResource);
     }
 };
 
