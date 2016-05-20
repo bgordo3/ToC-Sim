@@ -269,7 +269,7 @@ var ViewModel = function () {
 
     };  
     
-s};
+};
 
 // $(document).ready(function () {
 //     self.loadScenario(self.scenarios()[0]);
@@ -397,9 +397,7 @@ ViewModel.prototype.createStations = function () {
             '</div>';
         this.queryContainer[currentStation.idNumber - 1].stationContainer.append(stationNetworkHTML);
         this.createStationNetwork(currentStation);
-        console.log("Network Created");
         this.createStationGraph(currentStation);
-        console.log("Graph Created");
 
     }
 
@@ -495,7 +493,6 @@ ViewModel.prototype.createStationGraph = function (station) {
     var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
         '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
     var canvas = "#" + stationGraphCanvasID;
-    console.log(this.queryContainer[j].stationContainer);
     this.queryContainer[j].stationContainer.append(stationGraphHTML);
     station.graph = null;
     station.graph = this.createChart(canvas, station.output, station.missedOp, station.wip, null);
