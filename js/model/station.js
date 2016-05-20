@@ -13,7 +13,9 @@ var StationItem = function (data) {
     self.prodValue = [];
     self.totalEff = [];
     self.wip = [];
+    self.outputInventory=[];
     self.reqResources = [];
+    
 
     self.baseCapacity = 10;
     self.capRange = 5;
@@ -107,7 +109,7 @@ StationItem.prototype.calcValue = function (day, valueOfWip) {
 
 //does the stations work for the day. sets output, next day's WIP, and missed Opportunities
 StationItem.prototype.doWork = function (day, wipToAdd, wipValue) {
-
+    
     //first we need to calculate or capacity for the day
     this.calcCapacity(day);
     var todayCapacity = this.capacity[day];
@@ -141,6 +143,12 @@ StationItem.prototype.doWork = function (day, wipToAdd, wipValue) {
 
 };
 
+StationItem.prototype.doNetworkWork = function(day){
+    this.calcCapacity(day);
+    var todayCapacity = this.capacity[day];
+
+};
+
 StationItem.prototype.genNormal = function (a, b, c) {
     var total = 0;
     var capacity = 0;
@@ -151,6 +159,10 @@ StationItem.prototype.genNormal = function (a, b, c) {
     return Math.floor(total / c);
 };
 
-StationItem.prototype.addResource = function (resource){
+StationItem.prototype.addResource = function (resource, amount){
+    var newResource = {
+        resourceItem: resource,
+        quantity: amount
+    }
     this.reqResources.push(resource);
 };

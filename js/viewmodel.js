@@ -164,6 +164,7 @@ var ViewModel = function () {
     window.reload = function () {
         self.currentDay(0);
         self.currentScenario.reload();
+        self.clearUI();
         self.buildUI();
 
     };
@@ -249,6 +250,7 @@ var ViewModel = function () {
     };
 
     window.menuClick = function () {
+         $nav.removeClass('open');
         self.loadScenario(this);
     };
 
@@ -267,13 +269,13 @@ var ViewModel = function () {
 
     };
 
-    $(document).ready(function () {
-        self.loadScenario(self.scenarios()[0]);
-        var i = 0;
-        for (i; i < 5; i++) {
-            runProduction();
-        }
-    });
+    // $(document).ready(function () {
+    //     self.loadScenario(self.scenarios()[0]);
+    //     var i = 0;
+    //     for (i; i < 5; i++) {
+    //         runProduction();
+    //     }
+    // });
 
 };
 
@@ -347,30 +349,22 @@ ViewModel.prototype.buildUI = function () {
     self.$scenarioContainer.append('<div id="scenario-graph" class="graph"></div>');
     $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
 
-
     //create our overall scenario chart
     this.currentScenario.graph = this.createChart('#scenario-canvas', this.currentScenario.totalOutput, this.currentScenario.totalMissedOp, this.currentScenario.totalWIP, null);
     if ($('#showStationsCheckbox').is(':checked')) {
         this.createStations();
     }
-
 };
 
 
 ViewModel.prototype.clearUI = function () {
-    // $('.settings').remove();
-    // $('.graph').remove();
-    // $('.station').remove();
-    // $('.canvas').remove();
-    // $('.control').addClass("hidden");
+    this.clearStations();
     $('#scenario-settings').remove();
     $('#graph-settings').remove();
     $('#scenario-graph').remove();
     $('#scenario-canvas').remove();
     $('.control').addClass("hidden");
-    this.clearStations();
-
-};
+    };
 
 ViewModel.prototype.createStations = function () {
     var currentStation = null;
@@ -402,7 +396,9 @@ ViewModel.prototype.createStations = function () {
             '</div>';
         this.queryContainer[currentStation.idNumber - 1].stationContainer.append(stationNetworkHTML);
         this.createStationNetwork(currentStation);
+        console.log("Network Created");
         this.createStationGraph(currentStation);
+        console.log("Graph Created");
 
     }
 
@@ -498,18 +494,22 @@ ViewModel.prototype.createStationGraph = function (station) {
     var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
         '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
     var canvas = "#" + stationGraphCanvasID;
-
+    console.log(this.queryContainer[j].stationContainer);
     this.queryContainer[j].stationContainer.append(stationGraphHTML);
+    station.graph = null;
     station.graph = this.createChart(canvas, station.output, station.missedOp, station.wip, null);
 };
 
 
 ViewModel.prototype.clearStations = function () {
-    $('.station').remove();
-    self.stationContainer = [];
+        $('.station').remove();
+    this.queryContainer = [];
     this.currentScenario.stations.forEach(function (station) {
+        if(station.graph){
         station.graph.destroy();
+        }
     });
+
 };
 
 //updates the display with the most recent data
@@ -573,7 +573,6 @@ ViewModel.prototype.removeStationFromResourceList = function (station) {
 
 
 ViewModel.prototype.loadScenario = function (scenario) {
-
     if (this.currentScenario !== null) {
         this.clearUI();
         this.currentScenario = null;
