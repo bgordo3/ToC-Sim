@@ -186,6 +186,13 @@ td{
     width: 100%;
 }
 
+.scenario-graph {
+    height: 96%;
+    width: 70%;
+    padding: 1% 0% 0% 0%;
+    background-color: white;
+}
+
 .station {
     background-color: cornflowerblue;
     background-color: gray;

@@ -186,44 +186,14 @@ var ViewModel = function () {
             self.currentScenario.totalProdValue[day] = 0;
             self.currentScenario.totalWipValue[day] = 0;
 
-            for (var i = 0; i < self.currentScenario.stations.length; i++) {
-                var j = i + 1;
-                var currentStation = self.currentScenario.stations[i];
-                var wipToAdd = 0;
-                var wipValue = 0;
 
-                var capID = "station" + j + "cap";
-                var rangeID = "station" + j + "range";
-                var unitValID = "station" + j + "unitVal";
-                var varID = "station" + j + "var";
-                var wipID = "station" + j + "wip";
-
-                currentStation.baseCapacity = parseInt($('#' + capID).val());
-                currentStation.capRange = parseInt($('#' + rangeID).val());
-                currentStation.unitValue = parseInt($('#' + unitValID).val());
-                currentStation.varFactor = parseInt($('#' + varID).val());
-                currentStation.wip[self.currentDay()] = parseInt($('#' + wipID).val());
-
-                //if we are the first station, don't worry about previous station
-                if (i === 0) {
-                    wipToAdd = 0;
-                    wipValue = 0;
-                } else {
-                    //if its the first day, only work on what's in the initial WIP
-                    if (self.currentDay() === 0) {
-                        wipToAdd = 0;
-                    } else { //its not the first day, so we need to add previous stations work
-                        wipToAdd = self.currentScenario.stations[i - 1].output[day - 1];
-                    }
-                    wipValue = self.currentScenario.stations[i - 1].unitValue;
-                }
-                currentStation.doWork(self.currentDay(), wipToAdd, wipValue);
+            var simType = $('#simType').val();
+            if (simType === 'Normal') {
+                self.runNormalProduction();
+            } else if (simType === "Network") {
+                self.runNetworkProduction();
             }
-            self.currentScenario.updateTotals(self.currentDay());
-            //update the GUI with new data
-            self.currentScenario.days.push(day);
-            self.updateData();
-            self.currentDay(self.currentDay() + 1);
+
         }
     };
 
@@ -267,8 +237,8 @@ var ViewModel = function () {
 
     window.updateNetwork = function () {
 
-    };  
-    
+    };
+
 };
 
 // $(document).ready(function () {
@@ -335,10 +305,8 @@ ViewModel.prototype.buildUI = function () {
     var headerHTML = '<div id="scenario-settings" class="settings">Scenario Data' +
         '<p>Number of Days: ' + this.currentScenario.numOfDays + '</p>' +
         '<p>Number of Stations: ' + this.currentScenario.numOfStations + '</p>' +
-        'Show Stations?<input type= "checkbox" id="showStationsCheckbox" checked="checked" onchange="toggleStations()"></>';
-
-    self.$scenarioContainer.append(headerHTML);
-    self.$scenarioContainer.append('<div id="graph-settings" class="graph-settings">' +
+        'Show Stations?<input type= "checkbox" id="showStationsCheckbox" checked="checked" onchange="toggleStations()"><br><br>' +
+        // '<div id="graph-settings" class="graph-settings">' +
         'Graph Optional Line: ' +
         '<select id="graph-option" class="select-box" onchange="changeGraph()">' +
         '<option value="None">None</option>' +
@@ -346,8 +314,18 @@ ViewModel.prototype.buildUI = function () {
         '<option value="WIP Inventory Value">WIP Inventory Value</option>' +
         '<option value="Production Value">Production Value</option>' +
         '</select>' +
-        '<p><button id="load-network-button" type="button" onclick="updateNetwork()">UpdateNetwork</button><p></div>');
-    self.$scenarioContainer.append('<div id="scenario-graph" class="graph"></div>');
+        'Output Distribution: ' +
+        '<select id="distribution-option" class="select-box"">' +
+        '<option value="Optimized Pull">Optimized Pull</option>' +
+        '<option value="Fair Share">Fair Share</option>' +
+        '<option value="Priority Pull">Priority Pull</option>' +
+        '</select>' +
+
+        '</div></input></div>';
+
+    self.$scenarioContainer.append(headerHTML);
+    //self.$scenarioContainer.append();
+    self.$scenarioContainer.append('<div id="scenario-graph" class="scenario-graph"></div>');
     $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
 
     //create our overall scenario chart
@@ -357,6 +335,88 @@ ViewModel.prototype.buildUI = function () {
     }
 };
 
+ViewModel.prototype.runNormalProduction = function () {
+
+    for (var i = 0; i < this.currentScenario.stations.length; i++) {
+        var j = i + 1;
+        var currentStation = this.currentScenario.stations[i];
+        var wipToAdd = 0;
+        var wipValue = 0;
+
+        var capID = "station" + j + "cap";
+        var rangeID = "station" + j + "range";
+        var unitValID = "station" + j + "unitVal";
+        var varID = "station" + j + "var";
+        var wipID = "station" + j + "wip";
+
+        currentStation.baseCapacity = parseInt($('#' + capID).val());
+        currentStation.capRange = parseInt($('#' + rangeID).val());
+        currentStation.unitValue = parseInt($('#' + unitValID).val());
+        currentStation.varFactor = parseInt($('#' + varID).val());
+        currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
+
+        //if we are the first station, don't worry about previous station
+        if (i === 0) {
+            wipToAdd = 0;
+            wipValue = 0;
+        } else {
+            //if its the first day, only work on what's in the initial WIP
+            if (this.currentDay() === 0) {
+                wipToAdd = 0;
+            } else { //its not the first day, so we need to add previous stations work
+                wipToAdd = this.currentScenario.stations[i - 1].output[this.currentDay() - 1];
+            }
+            wipValue = this.currentScenario.stations[i - 1].unitValue;
+        }
+        currentStation.doWork(this.currentDay(), wipToAdd, wipValue);
+    }
+    this.currentScenario.updateTotals(this.currentDay());
+    //update the GUI with new data
+    this.currentScenario.days.push(this.currentDay());
+    this.updateData();
+    this.currentDay(this.currentDay() + 1);
+
+};
+
+ViewModel.prototype.runNetworkProduction = function () {
+
+    for (var i = 0; i < this.currentScenario.stations.length; i++) {
+        var j = i + 1;
+        var currentStation = this.currentScenario.stations[i];
+        var wipValue = 0;
+
+        var capID = "station" + j + "cap";
+        var rangeID = "station" + j + "range";
+        var unitValID = "station" + j + "unitVal";
+        var varID = "station" + j + "var";
+        var wipID = "station" + j + "wip";
+
+        currentStation.baseCapacity = parseInt($('#' + capID).val());
+        currentStation.capRange = parseInt($('#' + rangeID).val());
+        currentStation.unitValue = parseInt($('#' + unitValID).val());
+        currentStation.varFactor = parseInt($('#' + varID).val());
+        currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
+
+        //if we are the first station, don't worry about previous station
+        if (i === 0) {
+            wipValue = 0;
+        } else {
+            //if its the first day, only work on what's in the initial WIP
+            if (this.currentDay() === 0) {
+                wipToAdd = 0;
+            } else { //its not the first day, so we need to add previous stations work
+                wipToAdd = this.currentScenario.stations[i - 1].output[this.currentDay() - 1];
+            }
+        }
+        currentStation.doNetworkWork(this.currentDay());
+    }
+    this.currentScenario.updateTotals(this.currentDay());
+    //update the GUI with new data
+    this.currentScenario.days.push(day);
+    this.updateData();
+    this.currentDay(this.currentDay() + 1);
+
+};
 
 ViewModel.prototype.clearUI = function () {
     this.clearStations();
@@ -544,6 +604,7 @@ ViewModel.prototype.addStationToResourceList = function (station) {
         //not in our resource list, so let's add it.
         var tempResource = new ResourceItem();
         tempResource.name = station.unitName;
+        tempResource.value = station.unitValue;
         tempResource.providerList = [];
         tempResource.addProvider(station);
         tempResource.idNumber = app.viewModel.resourceIdCounter;

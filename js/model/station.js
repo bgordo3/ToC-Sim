@@ -33,7 +33,6 @@ var StationItem = function (data) {
             self.wip[0] = parseInt(data.initWIP);
         }
 
-
         //set baseCapacity data if defined in scenario
         if (data.baseCapacity) {
             self.baseCapacity = data.baseCapacity;
@@ -103,7 +102,7 @@ StationItem.prototype.calcEff = function (day) {
 };
 
 StationItem.prototype.calcValue = function (day, valueOfWip) {
-    this.prodValue[day] = parseInt(this.output[day] * this.unitValue);
+    this.prodValue[day] = this.output[day] * this.unitValue;
     this.wipValue[day] = this.wip[day] * valueOfWip;
 };
 
@@ -144,8 +143,63 @@ StationItem.prototype.doWork = function (day, wipToAdd, wipValue) {
 };
 
 StationItem.prototype.doNetworkWork = function(day){
+    //first we need to calculate or capacity for the day
     this.calcCapacity(day);
     var todayCapacity = this.capacity[day];
+    
+    //now we need to see what the maxium number of things we can produce based on our requirements
+    
+    //TODO add check for gate stations (No resource requirements)
+    var maxNumberProd = -1;
+    self.reqResources.forEach(function(resource){
+        var maxSubComponent = resource.canMake();
+        if(maxNumberProd === -1 || maxSubComponent < maxNumberProd){
+            maxNumberProd = maxSubComponent;
+        }
+    });
+    
+    //next we need to calculate the wip
+    this.calcWip(day, maxNumberProd);
+    var startingWip = this.wip[day];
+   
+    //now we need to "do work"
+    //if the new wip for the day is greater than today's capacity,  our output is equal to our capacity,
+    //and we have 0 missed ops.  The starting WIP for tomorrow will be set to 0 since its baseed on resourceItems
+    if (this.wip[day] >= todayCapacity) {
+        this.output[day] = todayCapacity;
+        this.missedOp[day] = 0;   
+
+        //otherwise, our output is limited by our wip for the day, and we have our missed ops is equal to 
+        //today's capacity minus our WIP.    
+    } else {
+        this.output[day] = this.wip[day];
+        this.missedOp[day] = todayCapacity - startingWip;
+    }
+     this.wip[day + 1] = 0;
+    
+    //now we need to make sure that we actually consume our resources based on the max number we can produce
+        self.reqResources.forEach(function(resource){
+            resource.useResource(this.output[day]);
+        });   
+        
+        
+        
+    
+    //finally, update our station efficiency
+    this.calcEff(day);
+
+    //update our stations inventory and output values for the day
+    this.outputInventory[day] = this.output[day];
+    
+   //calculate the value of the resources onHand
+    var resourceValue = 0;
+    this.reqResources.forEach(function(resource){
+        resourceValue += resource.getValue();
+    });  
+    this.wipValue[day] = resourceValue;  
+    
+    this.prodValue[day] = this.output[day] * this.unitValue;
+
 
 };
 
