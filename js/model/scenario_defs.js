@@ -160,32 +160,28 @@ var Scenarios = [
             ]
         },
     {
-        name: "Scenario 5",
-        numOfDays: 30,
-        simType: 'normal',
-        },
-    {
-        name: "Scenario 6",
-        numOfDays: 20,
-        stations: [
+        name: "Network Test",
+        numOfDays: 10,
+        simType: 'Network',
+                stations: [
             {
                 idNumber: 1,
-                baseCapacity: 10,
-                initWIP: 4,
-                capRange: 0
+                baseCapacity: 2,
+                initWIP: 0,
+                capRange: 1
                 },
             {
                 idNumber: 2,
-                initWIP: 2,
-                baseCapacity: 5,
-                capRange: 0
+                initWIP: 0,
+                baseCapacity: 2,
+                capRange: 1
                 },
             {
                 idNumber: 3,
-                initWIP: 1,
-                baseCapacity: 5,
-                capRange: 0
-                }
+                initWIP: 0,
+                baseCapacity: 2,
+                capRange: 1
+                },
             ]
         }
     ];

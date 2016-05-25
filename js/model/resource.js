@@ -8,7 +8,6 @@ var ResourceItem = function () {
     self.idNumber = 0;
     self.name = '';
     self.providerList = [];
-    self.required = 1;
     self.priority = 0;
     self.numberOnHand = 0;
     self.value = 0;
@@ -78,15 +77,17 @@ ResourceItem.prototype.useMaxResource = function () {
    return produced;
 };
 
-ResourceItem.prototype.canMake = function () {
-    var producable = Math.floor(self.numberOnHand /self.required);
+ResourceItem.prototype.canMake = function (required) {
+    var producable = Math.floor(this.numberOnHand /required);
+    console.log(this.name + "can make: ");
+    console.log("on hand" + this.numberOnHand);
+    console.log("station is asking for" + required);
+    
     if(producable >=1 ){
         return producable;
     }else{
         return 0;
-    }
-    
-    
+    }        
 };
 
 ResourceItem.prototype.getValue = function () {
@@ -94,3 +95,7 @@ ResourceItem.prototype.getValue = function () {
     return value;
     
 };
+
+ResourceItem.prototype.addOnHand = function (num) {
+    this.numberOnHand += num;
+    };

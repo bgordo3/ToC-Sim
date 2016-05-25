@@ -186,11 +186,9 @@ var ViewModel = function () {
             self.currentScenario.totalProdValue[day] = 0;
             self.currentScenario.totalWipValue[day] = 0;
 
-
-            var simType = $('#simType').val();
-            if (simType === 'Normal') {
+            if (self.currentScenario.simType === 'Normal') {
                 self.runNormalProduction();
-            } else if (simType === "Network") {
+            } else if (self.currentScenario.simType === "Network") {
                 self.runNetworkProduction();
             }
 
@@ -379,12 +377,12 @@ ViewModel.prototype.runNormalProduction = function () {
 };
 
 ViewModel.prototype.runNetworkProduction = function () {
-
-    for (var i = 0; i < this.currentScenario.stations.length; i++) {
+    var i = 0;
+    console.log("***** " + this.currentDay() + " *********")
+    for (i; i < this.currentScenario.stations.length; i++) {
         var j = i + 1;
         var currentStation = this.currentScenario.stations[i];
         var wipValue = 0;
-
         var capID = "station" + j + "cap";
         var rangeID = "station" + j + "range";
         var unitValID = "station" + j + "unitVal";
@@ -397,26 +395,58 @@ ViewModel.prototype.runNetworkProduction = function () {
         currentStation.varFactor = parseInt($('#' + varID).val());
         currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
 
-        //if we are the first station, don't worry about previous station
-        if (i === 0) {
-            wipValue = 0;
-        } else {
-            //if its the first day, only work on what's in the initial WIP
-            if (this.currentDay() === 0) {
-                wipToAdd = 0;
-            } else { //its not the first day, so we need to add previous stations work
-                wipToAdd = this.currentScenario.stations[i - 1].output[this.currentDay() - 1];
-            }
-        }
+        //now work on what we can with what we have
         currentStation.doNetworkWork(this.currentDay());
     }
+
+      this.distributeOutput();   
+
     this.currentScenario.updateTotals(this.currentDay());
     //update the GUI with new data
-    this.currentScenario.days.push(day);
+    this.currentScenario.days.push(this.currentDay());
     this.updateData();
     this.currentDay(this.currentDay() + 1);
 
 };
+
+ViewModel.prototype.distributeOutput = function () {
+
+    var i = 0;
+    for (i; i < this.currentScenario.stations.length; i++) {
+        var currentStation = this.currentScenario.stations[i];
+        //build a list of stations that require this output
+        var stationsThatNeedMe = [];
+        app.viewModel.currentScenario.stations.forEach(function (otherStation) {
+            if (currentStation != otherStation) {
+                if (otherStation.needsStation(currentStation)) {
+                    stationsThatNeedMe.push(otherStation)
+                }
+            }
+        });
+
+        switch ($('#distribution-option').val()) {
+            case 'Optimized Pull':
+                break;
+            case 'Fair Share':
+            if(stationsThatNeedMe.length > 0){
+                while (currentStation.outputInventory > 0) {
+                    stationsThatNeedMe.forEach(function (recStation) {
+                        if (currentStation.outputInventory > 0) {
+                            recStation.addInventory(currentStation, 1);
+                            currentStation.outputInventory = currentStation.outputInventory - 1;
+                        }
+                    });
+                }
+            }
+                break;
+            case 'Priority Pull':
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 
 ViewModel.prototype.clearUI = function () {
     this.clearStations();
@@ -532,9 +562,16 @@ ViewModel.prototype.createStationNetwork = function (station) {
                     if ($('#' + reqAmountId).val() === '') {
                         $('#' + reqAmountId).val(1);
                     }
+                    
+                    station.addResource(resource, $('#' + reqAmountId).val());
                 } else {
                     $('#' + reqAmountId).addClass('hidden');
+                    station.deleteResource(resource);
                 }
+            });
+            $('#' + reqAmountId).change(function () {
+                station.updateResourceAmount(resource,  $('#' + reqAmountId).val());
+
             });
         });
     }
@@ -582,7 +619,7 @@ ViewModel.prototype.updateData = function () {
         this.queryContainer[i].range.val(currentStation.capRange);
         this.queryContainer[i].unitVal.val(currentStation.unitValue);
         this.queryContainer[i].varience.val(currentStation.varFactor);
-        this.queryContainer[i].wip.val(currentStation.wip[this.currentDay() + 1]);
+        this.queryContainer[i].wip.val(currentStation.wip[this.currentDay()]);
 
         if (!self.finishProd) {
             currentStation.graph.options.scales.yAxes[1].ticks.suggestedMax = (scenario.maxStationWIP);
@@ -643,6 +680,7 @@ ViewModel.prototype.loadScenario = function (scenario) {
     this.scenarioTitle(scenario.name);
     this.numOfStations(scenario.numOfStations);
     this.numOfDays(scenario.numOfDays);
+
     this.currentScenario = scenario;
 
     scenario.stations.forEach(function (station) {
