@@ -318,7 +318,7 @@ ViewModel.prototype.buildUI = function () {
         '<option value="WIP Inventory Value">WIP Inventory Value</option>' +
         '<option value="Production Value">Production Value</option>' +
         '</select>' +
-        '<div id=distribution>'
+        '<div id=distribution>' +
     'Output Distribution: ' +
         '<select id="distribution-option" class="select-box"">' +
         '<option value="Fair Share">Fair Share</option>' +
