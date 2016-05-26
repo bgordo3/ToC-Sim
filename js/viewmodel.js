@@ -314,8 +314,8 @@ ViewModel.prototype.buildUI = function () {
         '</select>' +
         'Output Distribution: ' +
         '<select id="distribution-option" class="select-box"">' +
-        '<option value="Optimized Pull">Optimized Pull</option>' +
         '<option value="Fair Share">Fair Share</option>' +
+        '<option value="Optimized Pull">Optimized Pull</option>' +
         '<option value="Priority Pull">Priority Pull</option>' +
         '</select>' +
 
@@ -393,13 +393,13 @@ ViewModel.prototype.runNetworkProduction = function () {
         currentStation.capRange = parseInt($('#' + rangeID).val());
         currentStation.unitValue = parseInt($('#' + unitValID).val());
         currentStation.varFactor = parseInt($('#' + varID).val());
-        currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
+      //  currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
 
         //now work on what we can with what we have
         currentStation.doNetworkWork(this.currentDay());
     }
 
-      this.distributeOutput();   
+    this.distributeOutput();
 
     this.currentScenario.updateTotals(this.currentDay());
     //update the GUI with new data
@@ -428,16 +428,16 @@ ViewModel.prototype.distributeOutput = function () {
             case 'Optimized Pull':
                 break;
             case 'Fair Share':
-            if(stationsThatNeedMe.length > 0){
-                while (currentStation.outputInventory > 0) {
-                    stationsThatNeedMe.forEach(function (recStation) {
-                        if (currentStation.outputInventory > 0) {
-                            recStation.addInventory(currentStation, 1);
-                            currentStation.outputInventory = currentStation.outputInventory - 1;
-                        }
-                    });
+                if (stationsThatNeedMe.length > 0) {
+                    while (currentStation.outputInventory > 0) {
+                        stationsThatNeedMe.forEach(function (recStation) {
+                            if (currentStation.outputInventory > 0) {
+                                recStation.addInventory(currentStation, 1);
+                                currentStation.outputInventory = currentStation.outputInventory - 1;
+                            }
+                        });
+                    }
                 }
-            }
                 break;
             case 'Priority Pull':
                 break;
@@ -562,7 +562,7 @@ ViewModel.prototype.createStationNetwork = function (station) {
                     if ($('#' + reqAmountId).val() === '') {
                         $('#' + reqAmountId).val(1);
                     }
-                    
+
                     station.addResource(resource, $('#' + reqAmountId).val());
                 } else {
                     $('#' + reqAmountId).addClass('hidden');
@@ -570,7 +570,7 @@ ViewModel.prototype.createStationNetwork = function (station) {
                 }
             });
             $('#' + reqAmountId).change(function () {
-                station.updateResourceAmount(resource,  $('#' + reqAmountId).val());
+                station.updateResourceAmount(resource, $('#' + reqAmountId).val());
 
             });
         });

@@ -58,44 +58,41 @@ ResourceItem.prototype.hasProvider = function () {
     return false;
 }
 
-ResourceItem.prototype.useResource = function (numToMake) {
-    if(numToMake === null){
-        numToMake = 1;
+ResourceItem.prototype.useResource = function (amount,usedPer) {
+    if (usedPer === null) {
+        usedPer = 1;
     }
-    var resourcesToUse = self.required * numToMake;
-    if( self.numberOnHand >= resourcesToUse){
-   self.numberOnHand  -= resourcesToUse;
-        return numToMake;
-    }else{
+    var resourcesToUse = amount * usedPer;
+    if (this.numberOnHand >= resourcesToUse) {
+        this.numberOnHand -= resourcesToUse;
+        return this.numberOnHand;
+    } else {
         return 0;
     }
 };
 
-ResourceItem.prototype.useMaxResource = function () {
-    var producd = self.canMake();
-   self.numberOnHand  = self.numberOnHand % self.required
-   return produced;
+ResourceItem.prototype.useMaxResource = function (required) {
+    var produced = self.canMake(required);
+    self.numberOnHand = self.numberOnHand % required
+    return produced;
 };
 
 ResourceItem.prototype.canMake = function (required) {
-    var producable = Math.floor(this.numberOnHand /required);
-    console.log(this.name + "can make: ");
-    console.log("on hand" + this.numberOnHand);
-    console.log("station is asking for" + required);
-    
-    if(producable >=1 ){
+    var producable = Math.floor(this.numberOnHand / required);
+
+    if (producable >= 1) {
         return producable;
-    }else{
+    } else {
         return 0;
-    }        
+    }
 };
 
 ResourceItem.prototype.getValue = function () {
     var value = self.numberOnHand * self.revalue;
     return value;
-    
+
 };
 
 ResourceItem.prototype.addOnHand = function (num) {
     this.numberOnHand += num;
-    };
+};
