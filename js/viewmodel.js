@@ -192,6 +192,12 @@ var ViewModel = function () {
                 self.runNetworkProduction();
             }
 
+            self.currentScenario.updateTotals(self.currentDay());
+            //update the GUI with new data
+            self.currentScenario.days.push(self.currentDay());
+            self.updateData();
+            self.currentDay(self.currentDay() + 1);
+
         }
     };
 
@@ -312,13 +318,13 @@ ViewModel.prototype.buildUI = function () {
         '<option value="WIP Inventory Value">WIP Inventory Value</option>' +
         '<option value="Production Value">Production Value</option>' +
         '</select>' +
-        'Output Distribution: ' +
+        '<div id=distribution>'
+    'Output Distribution: ' +
         '<select id="distribution-option" class="select-box"">' +
         '<option value="Fair Share">Fair Share</option>' +
         '<option value="Optimized Pull">Optimized Pull</option>' +
         '<option value="Priority Pull">Priority Pull</option>' +
-        '</select>' +
-
+        '</select></div>' +
         '</div></input></div>';
 
     self.$scenarioContainer.append(headerHTML);
@@ -336,6 +342,7 @@ ViewModel.prototype.buildUI = function () {
 ViewModel.prototype.runNormalProduction = function () {
 
     for (var i = 0; i < this.currentScenario.stations.length; i++) {
+        console.log("***** " + this.currentDay() + " *********")
         var j = i + 1;
         var currentStation = this.currentScenario.stations[i];
         var wipToAdd = 0;
@@ -351,7 +358,7 @@ ViewModel.prototype.runNormalProduction = function () {
         currentStation.capRange = parseInt($('#' + rangeID).val());
         currentStation.unitValue = parseInt($('#' + unitValID).val());
         currentStation.varFactor = parseInt($('#' + varID).val());
-        currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
+       // currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
 
         //if we are the first station, don't worry about previous station
         if (i === 0) {
@@ -368,17 +375,11 @@ ViewModel.prototype.runNormalProduction = function () {
         }
         currentStation.doWork(this.currentDay(), wipToAdd, wipValue);
     }
-    this.currentScenario.updateTotals(this.currentDay());
-    //update the GUI with new data
-    this.currentScenario.days.push(this.currentDay());
-    this.updateData();
-    this.currentDay(this.currentDay() + 1);
-
 };
 
 ViewModel.prototype.runNetworkProduction = function () {
     var i = 0;
-    console.log("***** " + this.currentDay() + " *********")
+
     for (i; i < this.currentScenario.stations.length; i++) {
         var j = i + 1;
         var currentStation = this.currentScenario.stations[i];
@@ -393,20 +394,12 @@ ViewModel.prototype.runNetworkProduction = function () {
         currentStation.capRange = parseInt($('#' + rangeID).val());
         currentStation.unitValue = parseInt($('#' + unitValID).val());
         currentStation.varFactor = parseInt($('#' + varID).val());
-      //  currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
+        //  currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
 
         //now work on what we can with what we have
         currentStation.doNetworkWork(this.currentDay());
     }
-
     this.distributeOutput();
-
-    this.currentScenario.updateTotals(this.currentDay());
-    //update the GUI with new data
-    this.currentScenario.days.push(this.currentDay());
-    this.updateData();
-    this.currentDay(this.currentDay() + 1);
-
 };
 
 ViewModel.prototype.distributeOutput = function () {
@@ -488,7 +481,6 @@ ViewModel.prototype.createStations = function () {
         this.queryContainer[currentStation.idNumber - 1].stationContainer.append(stationNetworkHTML);
         this.createStationNetwork(currentStation);
         this.createStationGraph(currentStation);
-
     }
 
 };
@@ -699,9 +691,19 @@ ViewModel.prototype.loadScenario = function (scenario) {
                 app.viewModel.refreshNetwork(station);
             });
         });
-
-
+        element.wip.change(function(){
+            console.log("you changed the value");
+            var tempVal = parseInt(element.wip.val());
+            console.log(tempVal);
+         element.station.wip[app.viewModel.currentDay()] = tempVal;
+          console.log("done : " + element.station.wip[app.viewModel.currentDay()]);
+        });
     });
+    if (this.currentScenario.simType === "Normal") {
+        $('#distribution').addClass('hidden');
+    } else {
+        $('#distribution').removeClass('hidden');
+    }
 };
 
 ViewModel.prototype.getStationFromUnitName = function (unitName) {

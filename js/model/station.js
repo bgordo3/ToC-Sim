@@ -81,6 +81,7 @@ StationItem.prototype.calcWip = function (day, wipToAdd) {
     } else {
         if (day !== 0) {
             this.wip[day] = this.wip[day] + wipToAdd;
+            console.log(this.wip[day]);
         }
     }
 
@@ -143,7 +144,6 @@ StationItem.prototype.doWork = function (day, wipToAdd, wipValue) {
 };
 
 StationItem.prototype.doNetworkWork = function (day) {
-    console.log("-----" + this.title + "-----");
     //first we need to calculate or capacity for the day
     this.calcCapacity(day);
     var todayCapacity = this.capacity[day];
@@ -151,8 +151,6 @@ StationItem.prototype.doNetworkWork = function (day) {
     //now we need to see what the maxium number of things we can produce based on our requirements if it hasn't already been done
     var startingWip = this.calcWipBasedOnInventory(day);
     this.wip[day] = startingWip;
-    console.log("Calculated Wip: ");
-    console.log(this.wip[day]);
     
 
     //now we need to "do work"
@@ -175,10 +173,8 @@ StationItem.prototype.doNetworkWork = function (day) {
 
     //now we need to make sure that we actually consume our resources based on the max number we can produce
     var tempOutput = this.output[day]
-    console.log("My output for the day: " + tempOutput)
     this.reqResources.forEach(function (item) {
         item.resourceItem.useResource(tempOutput, item.quantityRequired);
-        console.log(item.resourceItem.name + " on hand" + item.resourceItem.numberOnHand);
     });
 
     //finally, update our station efficiency
@@ -194,20 +190,19 @@ StationItem.prototype.doNetworkWork = function (day) {
         resourceValue += resource.getValue();
     });
     this.wipValue[day] = resourceValue;
-
     this.prodValue[day] = this.output[day] * this.unitValue;
 
 
 };
 
-StationItem.prototype.genNormal = function (a, b, c) {
+StationItem.prototype.genNormal = function (min, max, varFact) {
     var total = 0;
     var capacity = 0;
-    for (var i = 1; i <= c; i++) {
-        capacity = (Math.random() * (b - a + 1) + a);
+    for (var i = 1; i <= varFact; i++) {
+        capacity = (Math.random() * (max - min + 1) + min);
         total += capacity;
     }
-    return Math.floor(total / c);
+    return Math.floor(total / varFact);
 };
 
 StationItem.prototype.addResource = function (resource, amount) {
@@ -256,9 +251,6 @@ StationItem.prototype.calcWipBasedOnInventory = function (day) {
     if (this.reqResources.length > 0) {
         this.reqResources.forEach(function (item) {
             var maxSubComponent = item.resourceItem.canMake(item.quantityRequired);
-            console.log(item.resourceItem);
-            console.log("Number required to make subcom: "+ item.quantityRequired);
-            console.log("item can make: " + maxSubComponent);
             if (maxNumberProd === -1 || maxSubComponent < maxNumberProd) {
                 maxNumberProd = maxSubComponent;
             }
@@ -271,8 +263,9 @@ StationItem.prototype.calcWipBasedOnInventory = function (day) {
 
 StationItem.prototype.updateResourceAmount = function (resource, amount) {
     this.reqResources.forEach(function (item) {
-        if (item.resource === resource) {
-            item.amount = amount;
+        if (item.resourceItem === resource) {
+            item.quantityRequired = amount;
         }
+
     });
 };
