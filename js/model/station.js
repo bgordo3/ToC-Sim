@@ -81,7 +81,6 @@ StationItem.prototype.calcWip = function (day, wipToAdd) {
     } else {
         if (day !== 0) {
             this.wip[day] = this.wip[day] + wipToAdd;
-            console.log(this.wip[day]);
         }
     }
 

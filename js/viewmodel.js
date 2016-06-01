@@ -319,7 +319,7 @@ ViewModel.prototype.buildUI = function () {
         '<option value="Production Value">Production Value</option>' +
         '</select>' +
         '<div id=distribution>' +
-    'Output Distribution: ' +
+        'Output Distribution: ' +
         '<select id="distribution-option" class="select-box"">' +
         '<option value="Fair Share">Fair Share</option>' +
         '<option value="Optimized Pull">Optimized Pull</option>' +
@@ -342,7 +342,6 @@ ViewModel.prototype.buildUI = function () {
 ViewModel.prototype.runNormalProduction = function () {
 
     for (var i = 0; i < this.currentScenario.stations.length; i++) {
-        console.log("***** " + this.currentDay() + " *********")
         var j = i + 1;
         var currentStation = this.currentScenario.stations[i];
         var wipToAdd = 0;
@@ -358,7 +357,7 @@ ViewModel.prototype.runNormalProduction = function () {
         currentStation.capRange = parseInt($('#' + rangeID).val());
         currentStation.unitValue = parseInt($('#' + unitValID).val());
         currentStation.varFactor = parseInt($('#' + varID).val());
-       // currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
+        // currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
 
         //if we are the first station, don't worry about previous station
         if (i === 0) {
@@ -433,6 +432,7 @@ ViewModel.prototype.distributeOutput = function () {
                 }
                 break;
             case 'Priority Pull':
+                //TODO add pull mechanism
                 break;
             default:
                 break;
@@ -526,27 +526,31 @@ ViewModel.prototype.createStationSettings = function (station, tagData) {
 ViewModel.prototype.createStationNetwork = function (station) {
     if (this.currentScenario.simType === "Network") {
         var stationNetworkContainer = $('#station' + station.idNumber + '-network');
-        stationNetworkContainer.append('<table class="resource-table">' +
-            '<tr><td>Resource</td><td>Amount</td></tr>');
+        var tableString = '<table class="resource-table">' +
+            '<tr><td></td><td>Resource</td><td>Amount</td><td>OnHand</td><td>Desired</td></tr>';
+
         this.currentScenario.resourceList.forEach(function (resource) {
             if (resource.name !== station.unitName) {
                 var checkId = 'station' + station.idNumber + 'res' + resource.idNumber + 'check';
                 var reqAmountId = 'station' + station.idNumber + 'res' + resource.idNumber + 'amount';
-                stationNetworkContainer.append(
-                    '<tr><td>' +
+                var onHandId = 'station' + station.idNumber + 'res' + resource.idNumber + 'onHand';
+                var desiredId = 'station' + station.idNumber + 'res' + resource.idNumber + 'desired';
+                tableString += '<tr><td>' +
                     '<input type="checkbox" id=' + checkId + ' checked="unchecked" ></input></td>' +
                     '<td>' + resource.name + '</td>' +
-                    '<td><input type="text" id=' + reqAmountId + ' class="input-box hidden" ></td></tr>'
-                );
-                stationNetworkContainer.append('</table>');
-
+                    '<td><input type="text" id=' + reqAmountId + ' class="input-box hidden" ></td>' +
+                    '<td><input type="text" id=' + onHandId + ' class="input-box hidden" ></td>' +
+                    '<td><input type="text" id=' + desiredId + ' class="input-box hidden" ></td></tr>';
             }
-
         });
+        tableString += '</table>';
+        stationNetworkContainer.append(tableString);
 
         this.currentScenario.resourceList.forEach(function (resource) {
             var checkId = 'station' + station.idNumber + 'res' + resource.idNumber + 'check';
             var reqAmountId = 'station' + station.idNumber + 'res' + resource.idNumber + 'amount';
+            var onHandId = 'station' + station.idNumber + 'res' + resource.idNumber + 'onHand';
+            var desiredId = 'station' + station.idNumber + 'res' + resource.idNumber + 'desired';
             $('#' + checkId).attr('checked', false);
             $('#' + checkId).click(function () {
                 if ($(this).is(':checked')) {
@@ -554,10 +558,20 @@ ViewModel.prototype.createStationNetwork = function (station) {
                     if ($('#' + reqAmountId).val() === '') {
                         $('#' + reqAmountId).val(1);
                     }
+                    $('#' + onHandId).removeClass('hidden');
+                    if ($('#' + onHandId).val() === '') {
+                        $('#' + onHandId).val(0);
+                    }
+                    $('#' + desiredId).removeClass('hidden');
+                    if ($('#' + desiredId).val() === '') {
+                        $('#' + desiredId).val(1);
+                    }
 
                     station.addResource(resource, $('#' + reqAmountId).val());
                 } else {
                     $('#' + reqAmountId).addClass('hidden');
+                    $('#' + onHandId).addClass('hidden');
+                    $('#' + desiredId).addClass('hidden');
                     station.deleteResource(resource);
                 }
             });
@@ -691,12 +705,9 @@ ViewModel.prototype.loadScenario = function (scenario) {
                 app.viewModel.refreshNetwork(station);
             });
         });
-        element.wip.change(function(){
-            console.log("you changed the value");
+        element.wip.change(function () {
             var tempVal = parseInt(element.wip.val());
-            console.log(tempVal);
-         element.station.wip[app.viewModel.currentDay()] = tempVal;
-          console.log("done : " + element.station.wip[app.viewModel.currentDay()]);
+            element.station.wip[app.viewModel.currentDay()] = tempVal;
         });
     });
     if (this.currentScenario.simType === "Normal") {

@@ -160,11 +160,13 @@ td{
 .settings {
     text-align: center;
     width: 20%;
+    max-width: 300px;
 }
 
 .graph-settings {
     background-color: darkgray;
     width: 20%;
+    
 }
 
 .graph {
@@ -203,7 +205,7 @@ td{
 
 .network-settings {
     background-color: darkgray;
-    width: 20%;
+    width: auto;
 }
 
 .resource-table{
@@ -211,6 +213,14 @@ td{
     padding:5px;
     width: auto;
     text-align: center;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
 }
 
 
