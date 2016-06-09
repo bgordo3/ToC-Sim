@@ -25,7 +25,7 @@ ResourceItem.prototype.addProvider = function (station) {
     if (!stationExistsInList) {
         this.providerList.push(station);
     }
-}
+};
 
 ResourceItem.prototype.removeProvider = function (station) {
     var i = this.providerList.length - 1;
@@ -35,17 +35,17 @@ ResourceItem.prototype.removeProvider = function (station) {
             this.providerList.splice(i, 1);
         }
     }
-}
+};
 
 ResourceItem.prototype.containsStation = function (station) {
     var matchFound = false;
     this.providerList.forEach(function (provider) {
-        if (provider == station) {
+        if (provider === station) {
             matchFound = true;
         }
     });
     return matchFound;
-}
+};
 
 ResourceItem.prototype.hasProvider = function () {
     if (this.providerList) {
@@ -56,7 +56,7 @@ ResourceItem.prototype.hasProvider = function () {
         }
     }
     return false;
-}
+};
 
 ResourceItem.prototype.useResource = function (amount,usedPer) {
     if (usedPer === null) {
@@ -72,8 +72,8 @@ ResourceItem.prototype.useResource = function (amount,usedPer) {
 };
 
 ResourceItem.prototype.useMaxResource = function (required) {
-    var produced = self.canMake(required);
-    self.numberOnHand = self.numberOnHand % required
+    var produced = this.canMake(required);
+    this.numberOnHand = this.numberOnHand % required;
     return produced;
 };
 
@@ -88,11 +88,19 @@ ResourceItem.prototype.canMake = function (required) {
 };
 
 ResourceItem.prototype.getValue = function () {
-    var value = self.numberOnHand * self.revalue;
+    var value = this.numberOnHand * this.revalue;
     return value;
 
 };
 
 ResourceItem.prototype.addOnHand = function (num) {
     this.numberOnHand += num;
+};
+
+ResourceItem.prototype.onHand = function () {
+    return this.numberOnHand;
+};
+
+ResourceItem.prototype.getName = function () {
+    return this.name;
 };

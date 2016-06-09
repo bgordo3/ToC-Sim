@@ -1,4 +1,4 @@
-/*global $, Scenarios */
+/*global $, Scenarios, RequestQueue */
 var app = app || {};
 
 //Defines our Station objects. 
@@ -15,6 +15,7 @@ var StationItem = function (data) {
     self.wip = [];
     self.outputInventory = 0;
     self.reqResources = [];
+    self.reqQueue = new RequestQueue();
 
 
     self.baseCapacity = 10;
@@ -60,6 +61,7 @@ var StationItem = function (data) {
     }
 
 };
+StationItem.prototype = Object.create(StationItem.prototype);
 
 //calculations station capacity for the day based on baseCapacity and Sigma
 StationItem.prototype.calcCapacity = function (day) {
@@ -76,7 +78,7 @@ StationItem.prototype.calcCapacity = function (day) {
 
 StationItem.prototype.calcWip = function (day, wipToAdd) {
     //if we're station 1, our WIP is our capacity
-    if (this.idNumber == 1) {
+    if (this.idNumber === 1) {
         this.wip[day] = this.capacity[day];
     } else {
         if (day !== 0) {
@@ -171,7 +173,7 @@ StationItem.prototype.doNetworkWork = function (day) {
 
 
     //now we need to make sure that we actually consume our resources based on the max number we can produce
-    var tempOutput = this.output[day]
+    var tempOutput = this.output[day];
     this.reqResources.forEach(function (item) {
         item.resourceItem.useResource(tempOutput, item.quantityRequired);
     });
@@ -204,11 +206,12 @@ StationItem.prototype.genNormal = function (min, max, varFact) {
     return Math.floor(total / varFact);
 };
 
-StationItem.prototype.addResource = function (resource, amount) {
+StationItem.prototype.addResource = function (resource, reqAmount, desAmount) {
     var newResource = {
         resourceItem: resource,
-        quantityRequired: amount
-    }
+        quantityRequired: reqAmount,
+        desiredLevel: desAmount
+    };
     this.reqResources.push(newResource);
 };
 
@@ -234,8 +237,7 @@ StationItem.prototype.needsStation = function (station) {
 };
 
 StationItem.prototype.addInventory = function (station, amount) {
-    var stationThatsAdding = this;
-    var continueCheck = true
+    var continueCheck = true;
     this.reqResources.forEach(function (item) {
         var resource = item.resourceItem;
         if (resource.containsStation(station) && continueCheck) {
@@ -258,13 +260,27 @@ StationItem.prototype.calcWipBasedOnInventory = function (day) {
         maxNumberProd = this.capacity[day];
     }
     return maxNumberProd;
-}
+    };
 
 StationItem.prototype.updateResourceAmount = function (resource, amount) {
     this.reqResources.forEach(function (item) {
         if (item.resourceItem === resource) {
             item.quantityRequired = amount;
         }
+
+    });
+};
+
+StationItem.prototype.getResources = function () {
+    return this.reqResources;
+};
+
+StationItem.prototype.updateDesiredInventory = function (resource, amount) {
+    this.reqResources.forEach(function (item) {
+        if (item.resourceItem === resource) {
+            item.desiredLevel = amount;
+        }
+
 
     });
 };

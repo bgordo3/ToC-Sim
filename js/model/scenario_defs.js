@@ -181,7 +181,7 @@ var Scenarios = [
                 initWIP: 0,
                 baseCapacity: 2,
                 capRange: 1
-                },
+                }
             ]
         }
     ];
