@@ -27,7 +27,7 @@ ResourceRequest.prototype.getPriority = function () {
     };
 
 ResourceRequest.prototype.setNumRequested = function (amount) {
-    this.numRequested = ParseInt(amount);
+    this.numRequested = parseInt(amount);
 };
 
 ResourceRequest.prototype.getNumRequested = function () {
@@ -43,14 +43,14 @@ ResourceRequest.prototype.getRequestingStation = function () {
 };
 
 ResourceRequest.prototype.addRequests = function (amount) {
-   this.numRequested += ParseInt(amount);
+   this.numRequested += parseInt(amount);
 };
 
 ResourceRequest.prototype.removeRequests = function (amount) {
     if(amount > this.numRequested){
         this.numRequested = 0;
     }else{
-           this.numRequested -= ParseInt(amount);
+           this.numRequested -= parseInt(amount);
     }
 };
 

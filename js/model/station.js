@@ -144,7 +144,11 @@ StationItem.prototype.doWork = function (day, wipToAdd, wipValue) {
 
 };
 
-StationItem.prototype.doNetworkWork = function (day) {
+StationItem.prototype.doNetworkWork = function (day,excess) {
+    if(!excess){
+        excess=false;
+    }
+
     //first we need to calculate or capacity for the day
     this.calcCapacity(day);
     var todayCapacity = this.capacity[day];
