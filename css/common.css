@@ -33,6 +33,13 @@ body {
     text-align: center;
 }
 
+td{
+    margin: 5px;
+    padding-right: 5px;
+     padding-left: 5px;
+    width:auto;
+}
+
 
 /*---------------------------------- Header ---------------------------------- */
 
@@ -70,6 +77,10 @@ body {
 
 .label {
     height: 20px;
+}
+
+.input-box{
+    width: 70px;
 }
 
 
@@ -149,11 +160,13 @@ body {
 .settings {
     text-align: center;
     width: 20%;
+    max-width: 300px;
 }
 
 .graph-settings {
     background-color: darkgray;
     width: 20%;
+    
 }
 
 .graph {
@@ -175,6 +188,13 @@ body {
     width: 100%;
 }
 
+.scenario-graph {
+    height: 96%;
+    width: 70%;
+    padding: 1% 0% 0% 0%;
+    background-color: white;
+}
+
 .station {
     background-color: cornflowerblue;
     background-color: gray;
@@ -185,7 +205,22 @@ body {
 
 .network-settings {
     background-color: darkgray;
-    width: 20%;
+    width: auto;
+}
+
+.resource-table{
+    margin: 5px;
+    padding:5px;
+    width: auto;
+    text-align: center;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
 }
 
 

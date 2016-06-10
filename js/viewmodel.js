@@ -1,11 +1,11 @@
-/*global $, Model, ko, ScenarioItem, ChartHelper, ResourceItem */
+/*global $, Model, ko, ScenarioItem, ChartHelper, ResourceItem, ResourceRequest */
 // global application variable
 var app = app || {};
 
 var ViewModel = function () {
     'use strict';
     var self = this,
-        $main = $('#map-container'),
+        $main = $('#sim-container'),
         $nav = $('#menu-container'),
         $menuButton = $('#menu-button-container'),
         $customScenario = $('#custom'),
@@ -13,7 +13,7 @@ var ViewModel = function () {
 
 
     self.$scenarioContainer = null;
-    self.stationContainer = [];
+    self.queryContainer = [];
     self.model = new Model();
     self.currentScenario = null;
     self.scenarios = ko.observableArray();
@@ -22,7 +22,9 @@ var ViewModel = function () {
     self.numOfDays = ko.observable(30);
     self.currentDay = ko.observable(0);
     self.finishProd = false;
+    self.resourceIdCounter = 0;
     $customSettings.toggle(false);
+
 
     //populate locations observable container with data from model. We first create a blank scenario object,
     //then initialize it with the data our scenario definitions.
@@ -34,6 +36,7 @@ var ViewModel = function () {
     /**
      * @description - toggles location navigation drawer (only shown when responsive
      *                css is loaded)
+     * @param {event} e event to pass in
      */
     $menuButton.click(function (e) {
         $nav.toggleClass('open');
@@ -54,17 +57,20 @@ var ViewModel = function () {
         self.scenarioTitle("Custom Scenario");
     });
 
+    /**
+     * @description - updates the display based on the selected optional line.  
+     */
     window.changeGraph = function () {
-        var dataToGraph = null;
 
         //remove and re-add canvases to delete old chart.
         $('#scenario-canvas').remove();
         $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
         self.currentScenario.stations.forEach(function (station) {
-            $('#station' + station.number + '-canvas').remove();
-            $('#station' + station.number + '-graph').append(
-                '<canvas id="station' + station.number + '-canvas" class="canvas"></canvas></div>');
+            $('#station' + station.idNumber + '-canvas').remove();
+            $('#station' + station.idNumber + '-graph').append(
+                '<canvas id="station' + station.idNumber + '-canvas" class="canvas"></canvas></div>');
         });
+        var optDataToChart = null;
 
         switch ($('#graph-option').val()) {
             case 'Production Value':
@@ -74,7 +80,7 @@ var ViewModel = function () {
                     self.currentScenario.totalWIP,
                     self.currentScenario.totalProdValue);
                 self.currentScenario.stations.forEach(function (station) {
-                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.graph = self.createChart('#station' + station.idNumber + '-canvas',
                         station.output,
                         station.missedOp,
                         station.wip,
@@ -88,7 +94,7 @@ var ViewModel = function () {
                     self.currentScenario.totalWIP,
                     self.currentScenario.totalWipValue);
                 self.currentScenario.stations.forEach(function (station) {
-                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.graph = self.createChart('#station' + station.idNumber + '-canvas',
                         station.output,
                         station.missedOp,
                         station.wip,
@@ -102,7 +108,7 @@ var ViewModel = function () {
                     self.currentScenario.totalWIP,
                     self.currentScenario.totalEff);
                 self.currentScenario.stations.forEach(function (station) {
-                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.graph = self.createChart('#station' + station.idNumber + '-canvas',
                         station.output,
                         station.missedOp,
                         station.wip,
@@ -116,7 +122,7 @@ var ViewModel = function () {
                     self.currentScenario.totalWIP,
                     null);
                 self.currentScenario.stations.forEach(function (station) {
-                    station.graph = self.createChart('#station' + station.number + '-canvas',
+                    station.graph = self.createChart('#station' + station.idNumber + '-canvas',
                         station.output,
                         station.missedOp,
                         station.wip,
@@ -137,14 +143,14 @@ var ViewModel = function () {
         var scenarioData = {
             name: "Custom Scenario",
             numOfStations: self.numOfStations(),
-            numOfDays: self.numOfDays(),
+            numOfDays: self.numOfDays()
         };
         var scenario = new ScenarioItem(scenarioData);
 
         //create stations with default data
         for (var i = 1; i <= self.numOfStations(); i++) {
             var data = {
-                number: i,
+                idNumber: i,
                 initWIP: 10,
                 baseCapacity: 10,
                 capRange: 0
@@ -152,6 +158,7 @@ var ViewModel = function () {
             var tempStation = new StationItem(data);
             scenario.addStation(tempStation);
         }
+        scenario.simType = $('#simType').val();
         self.loadScenario(scenario);
     };
 
@@ -180,70 +187,33 @@ var ViewModel = function () {
             self.currentScenario.totalProdValue[day] = 0;
             self.currentScenario.totalWipValue[day] = 0;
 
-            for (var i = 0; i < self.currentScenario.stations.length; i++) {
-                var j = i + 1;
-                var currentStation = self.currentScenario.stations[i];
-                var wipToAdd = 0;
-                var wipValue = 0;
-
-                var capID = "station" + j + "cap";
-                var rangeID = "station" + j + "range";
-                var unitValID = "station" + j + "unitVal";
-                var varID = "station" + j + "var";
-                var wipID = "station" + j + "wip";
-
-                currentStation.baseCapacity = parseInt($('#' + capID).val());
-                currentStation.capRange = parseInt($('#' + rangeID).val());
-                currentStation.unitValue = parseInt($('#' + unitValID).val());
-                currentStation.varFactor = parseInt($('#' + varID).val());
-                currentStation.wip[self.currentDay()] = parseInt($('#' + wipID).val());
-
-                //if we are the first station, don't worry about previous station
-                if (i === 0) {
-                    wipToAdd = 0;
-                    wipValue = 0;
-                } else {
-                    //if its the first day, only work on what's in the initial WIP
-                    if (self.currentDay() === 0) {
-                        wipToAdd = 0;
-                    } else { //its not the first day, so we need to add previous stations work
-                        wipToAdd = self.currentScenario.stations[i - 1].output[day - 1];
-                    }
-                    wipValue = self.currentScenario.stations[i - 1].unitValue;
-                }
-                currentStation.doWork(self.currentDay(), wipToAdd, wipValue);
+            if (self.currentScenario.simType === 'Normal') {
+                self.runNormalProduction();
+            } else if (self.currentScenario.simType === "Network") {
+                self.runNetworkProduction();
             }
-            self.currentScenario.updateTotals(self.currentDay());
             //update the GUI with new data
-            self.currentScenario.days.push(day);
-            self.updateData();
+            self.currentScenario.updateTotals(self.currentDay());
+
+            self.currentScenario.days.push(self.currentDay());
             self.currentDay(self.currentDay() + 1);
+            self.updateData();
+
+
         }
     };
 
     window.finishProduction = function () {
         while (self.currentDay() <= self.numOfDays()) {
-            if (self.currentDay() == self.numOfDays) {
+            if (self.currentDay() === self.numOfDays) {
                 finishProduction = false;
             }
             runProduction();
         }
     };
 
-    window.printTotalResults = function () {
-        var totalProd = 0;
-        var totalMissed = 0;
-        var totalOutput = 0;
-        var totalHTMLText = '';
-        self.currentScenario.totalCapacity().forEach(function (prod) {
-            totalProd += prod;
-        });
-        self.currentScenario.totalMissedOp().forEach(function (miss) {
-            totalMissed += miss;
-        });
-    };
-
     window.menuClick = function () {
+        $nav.removeClass('open');
         self.loadScenario(this);
     };
 
@@ -258,14 +228,20 @@ var ViewModel = function () {
         }
     };
 
-    $(document).ready(function () {
-        self.loadScenario(self.scenarios()[0]);
-        var i = 0;
-        for (i; i < 5; i++) {
-            runProduction();
-        }
-    });
+    window.updateNetwork = function () {
+
+    };
+
 };
+
+// $(document).ready(function () {
+//     self.loadScenario(self.scenarios()[0]);
+//     var i = 0;
+//     for (i; i < 5; i++) {
+//         runProduction();
+//     }
+// });
+
 
 ViewModel.prototype = Object.create(ViewModel.prototype);
 
@@ -315,158 +291,505 @@ ViewModel.prototype.createChart = function (canvas, output, missed, wip, optData
 };
 
 ViewModel.prototype.buildUI = function () {
-    this.clearUI();
-    if (!self.$scenarioContainer) {
-        self.$scenarioContainer = $('#scenario-container');
+    if (!this.$scenarioContainer) {
+        this.$scenarioContainer = $('#scenario-container');
     }
     $('.control').removeClass("hidden");
     var headerHTML = '<div id="scenario-settings" class="settings">Scenario Data' +
         '<p>Number of Days: ' + this.currentScenario.numOfDays + '</p>' +
         '<p>Number of Stations: ' + this.currentScenario.numOfStations + '</p>' +
-        'Show Stations?<input type= "checkbox" id="showStationsCheckbox" checked="checked" onchange="toggleStations()"></>';
-
-    self.$scenarioContainer.append(headerHTML);
-    self.$scenarioContainer.append('<div id="graph-settings" class="graph-settings">' +
+        'Show Stations?<input type= "checkbox" id="showStationsCheckbox" checked="checked" onchange="toggleStations()"><br><br>' +
+        // '<div id="graph-settings" class="graph-settings">' +
         'Graph Optional Line: ' +
         '<select id="graph-option" class="select-box" onchange="changeGraph()">' +
         '<option value="None">None</option>' +
         '<option value="Efficiency">Efficiency</option>' +
         '<option value="WIP Inventory Value">WIP Inventory Value</option>' +
         '<option value="Production Value">Production Value</option>' +
-        '</select>');
-    self.$scenarioContainer.append('<div id="scenario-graph" class="graph"></div>');
-    $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
+        '</select>' +
+        '<div id=distribution>' +
+        'Output Distribution: ' +
+        '<select id="distribution-option" class="select-box"">' +
+        '<option value="Optimized Pull">Optimized Pull</option>' +
+        '<option value="Fair Share">Fair Share</option>' +
+        '<option value="Priority Pull">Priority Pull</option>' +
+        '</select></div>' +
+        '</div></input></div>';
 
+    this.$scenarioContainer.append(headerHTML);
+    //self.$scenarioContainer.append();
+    this.$scenarioContainer.append('<div id="scenario-graph" class="scenario-graph"></div>');
+    $('#scenario-graph').append('<canvas id="scenario-canvas" class="canvas"></canvas></div>');
 
     //create our overall scenario chart
     this.currentScenario.graph = this.createChart('#scenario-canvas', this.currentScenario.totalOutput, this.currentScenario.totalMissedOp, this.currentScenario.totalWIP, null);
     if ($('#showStationsCheckbox').is(':checked')) {
         this.createStations();
     }
+};
 
+ViewModel.prototype.runNormalProduction = function () {
+
+    for (var i = 0; i < this.currentScenario.stations.length; i++) {
+        var j = i + 1;
+        var currentStation = this.currentScenario.stations[i];
+        var wipToAdd = 0;
+        var wipValue = 0;
+
+        var capID = "station" + j + "cap";
+        var rangeID = "station" + j + "range";
+        var unitValID = "station" + j + "unitVal";
+        var varID = "station" + j + "var";
+
+        currentStation.baseCapacity = parseInt($('#' + capID).val());
+        currentStation.capRange = parseInt($('#' + rangeID).val());
+        currentStation.unitValue = parseInt($('#' + unitValID).val());
+        currentStation.varFactor = parseInt($('#' + varID).val());
+        // currentStation.wip[this.currentDay()] = parseInt($('#' + wipID).val());
+
+        //if we are the first station, don't worry about previous station
+        if (i === 0) {
+            wipToAdd = 0;
+            wipValue = 0;
+        } else {
+            //if its the first day, only work on what's in the initial WIP
+            if (this.currentDay() === 0) {
+                wipToAdd = 0;
+            } else { //its not the first day, so we need to add previous stations work
+                wipToAdd = this.currentScenario.stations[i - 1].output[this.currentDay() - 1];
+            }
+            wipValue = this.currentScenario.stations[i - 1].unitValue;
+        }
+        currentStation.doWork(this.currentDay(), wipToAdd, wipValue);
+    }
+};
+
+ViewModel.prototype.runNetworkProduction = function () {
+    var i = 0;
+
+    for (i; i < this.currentScenario.stations.length; i++) {
+        var j = i + 1;
+        var currentStation = this.currentScenario.stations[i];
+        var capID = "station" + j + "cap";
+        var rangeID = "station" + j + "range";
+        var unitValID = "station" + j + "unitVal";
+        var varID = "station" + j + "var";
+
+        currentStation.baseCapacity = parseInt($('#' + capID).val());
+        currentStation.capRange = parseInt($('#' + rangeID).val());
+        currentStation.unitValue = parseInt($('#' + unitValID).val());
+        currentStation.varFactor = parseInt($('#' + varID).val());
+
+        //now work on what we can with what we have
+        currentStation.doNetworkWork(this.currentDay());
+    }
+    this.distributeOutput();
+};
+
+
+    ViewModel.prototype.distributeRoundRobin = function () {
+            var i = 0;
+            for (i; i < this.currentScenario.stations.length; i++) {
+                var currentStation = this.currentScenario.stations[i];
+                //build a list of stations that require this output
+                var stationsThatNeedMe = [];
+                app.viewModel.currentScenario.stations.forEach(function (otherStation) {
+                    if (currentStation !== otherStation) {
+                        if (otherStation.needsStation(currentStation)) {
+                            stationsThatNeedMe.push(otherStation);
+                        }
+                    }
+                });
+
+                if (stationsThatNeedMe.length > 0) {
+                    while (currentStation.outputInventory > 0) {
+                        stationsThatNeedMe.forEach(function (recStation) {
+                            if (currentStation.outputInventory > 0) {
+                                recStation.addInventory(currentStation, 1);
+                                currentStation.outputInventory = currentStation.outputInventory - 1;
+                            }
+                        });
+                    }
+                }
+
+            }
+    };
+
+    ViewModel.prototype.distributeOptimized = function () {
+                    this.currentScenario.stations.forEach(function (requestingStation) {
+                requestingStation.reqResources.forEach(function (resource) {
+                    var invDelta = resource.desiredLevel - resource.resourceItem.onHand();
+                    
+                    while (invDelta > 0) {
+                        resource.resourceItem.providerList.forEach(function (providerStation) {
+                            if (invDelta > 0) {
+                                var priority = '';
+                                if (invDelta < (resource.desiredLevel / 3)) {
+                                    priority = 'low';
+                                } else if (invDelta > (resource.desiredLevel / 3) * 2) {
+                                    priority = 'high';
+                                } else {
+                                    priority = 'med';
+                                }
+                                var tempRequest = new ResourceRequest();
+                                tempRequest.setRequestingStation(requestingStation);
+                                tempRequest.setPriority(priority);
+                                tempRequest.setNumRequested(1);
+                                providerStation.reqQueue.addToQueue(tempRequest);
+                                console.log(providerStation.reqQueue);
+                                invDelta -= 1;                                
+                            }
+                        });
+                    }
+                });
+            });
+
+            /**
+             * Now that demand has been established we need to go through all of the stations
+             * and distribute our output.
+             */
+            this.currentScenario.stations.forEach(function (sendingStation) {
+                var needToOutput = true;                
+                while (sendingStation.outputInventory > 0 && needToOutput) {
+                    var recStation = sendingStation.reqQueue.getNextRequest();
+                    if (recStation) {
+                        recStation.addInventory(sendingStation, 1);
+                        sendingStation.outputInventory = sendingStation.outputInventory - 1;
+                    } else {
+                        needToOutput = false;
+                    }
+                }
+            });
+    };
+
+    /*
+ * @description distributes output of each station.  Only used for network style 
+ * simulations.  
+ */
+ViewModel.prototype.distributeOutput = function () {
+    switch ($('#distribution-option').val()) {
+
+        /*
+         * For optimized Pull, we need to build a list of who needs what first,
+         * then we will go back and distribute based on need.
+         */
+        case 'Optimized Pull':
+            this.distributeOptimized();        
+            //now that we've done our best to distribute based on priority, we will give out the rest round robin
+            this.distributeRoundRobin();
+            break;
+        case 'Fair Share':
+            this.distributeRoundRobin();
+            break;
+        case 'Priority Pull':
+            //TODO add pull mechanism
+            break;
+        default:
+            break;
+    }
+
+
+    //now we need to update the resources with onHand amounts
+    app.viewModel.currentScenario.stations.forEach(function (station) {
+        station.reqResources.forEach(function (item) {
+            var tempResource = new ResourceItem();
+            tempResource = item.resourceItem;
+            var onHandId = 'station' + station.idNumber + 'res' + tempResource.getName() + 'onHand';
+            $('#' + onHandId).val(parseInt(tempResource.onHand()));
+        });
+
+    });
+};
+
+ViewModel.prototype.clearUI = function () {
+    this.clearStations();
+    $('#scenario-settings').remove();
+    $('#graph-settings').remove();
+    $('#scenario-graph').remove();
+    $('#scenario-canvas').remove();
+    $('.control').addClass("hidden");
 };
 
 ViewModel.prototype.createStations = function () {
-    this.stationContainer = [];
+    var currentStation = null;
     for (var i = 0; i < this.numOfStations(); i++) {
         var j = i + 1;
-        var currentStation = this.currentScenario.stations[i];
+        currentStation = this.currentScenario.stations[i];
         var stationContainerID = 'station' + j + '-container';
         var capID = "station" + j + "cap";
         var rangeID = "station" + j + "range";
         var unitValID = "station" + j + "unitVal";
         var varID = "station" + j + "var";
         var wipID = "station" + j + "wip";
-        var stationHTML = '<div id="' + stationContainerID + '" class="station"></div>';
-        var stationSettingsHTML = '<div id="station' + j + '-settings" class="settings">Station ' + j + ' Data' +
-            '<table><tr>' +
-            '<td>Base Capacity:</td>' +
-            '<td><input id="' + capID + '" type="text" name="' + capID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Capacity Range:</td>' +
-            '<td><input id="' + rangeID + '" type="text" name="' + rangeID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Variance Factor:</td>' +
-            '<td><input id="' + varID + '" type="text" name="' + varID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Unit Value: </td>' +
-            '<td><input id="' + unitValID + '" type="text" name="' + unitValID + '"></td>' +
-            '</tr><tr>' +
-            '<td>Current WIP: </td>' +
-            '<td><input id="' + wipID + '" type="text" name="' + wipID + '"></td>' +
-            '</tr></table></div>';
-        var stationNetworkHTML = '<div id="station' + j + '-network" class="network-settings">' +
+        var outputID = "station" + j + "outputName";
+
+        $('#station-container').append('<div id="' + stationContainerID + '" class="station"></div>');
+
+        var settingIdTags = {
+            containerIdTag: stationContainerID,
+            capIdTag: capID,
+            rangeIdTag: rangeID,
+            unitValIdTag: unitValID,
+            varienceIdTag: varID,
+            wipIdTag: wipID,
+            outputNameIdTag: outputID
+        };
+
+        this.createStationSettings(currentStation, settingIdTags);
+        var stationNetworkHTML = '<div id="station' + currentStation.idNumber + '-network" class="network-settings">' +
             '</div>';
-        var stationGraphID = 'station' + j + '-graph';
-        var stationGraphCanvasID = 'station' + j + '-canvas';
-        var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
-            '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
+        this.queryContainer[currentStation.idNumber - 1].stationContainer.append(stationNetworkHTML);
+        this.createStationNetwork(currentStation);
+        this.createStationGraph(currentStation);
+    }
 
-        $('#station-container').append(stationHTML);
-        $('#' + stationContainerID).append(stationSettingsHTML);
+};
 
-        this.stationContainer.push({
-            stationContainer: $('#' + stationContainerID),
-            cap: $('#' + capID),
-            range: $('#' + rangeID),
-            unitVal: $('#' + unitValID),
-            varience: $('#' + varID),
-            wip: $('#' + wipID),
+ViewModel.prototype.createStationSettings = function (station, tagData) {
+    var stationSettingsHTML = '<div id="station' + station.idNumber + '-settings" class="settings">Station ' + station.idNumber + ' Data' +
+        '<table><tr><td>Base Capacity:</td>' +
+        '<td><input id="' + tagData.capIdTag + '" class="input-box" type="text" name="' + tagData.capIdTag + '"></td>' +
+        '</tr><tr><td>Capacity Range:</td>' +
+        '<td><input id="' + tagData.rangeIdTag + '" class="input-box" type="text" name="' + tagData.rangeIdTag + '"></td>' +
+        '</tr><tr><td>Variance Factor:</td>' +
+        '<td><input id="' + tagData.varienceIdTag + '" class="input-box" type="text" name="' + tagData.varienceIdTag + '"></td>' +
+        '</tr><tr><td>Unit Value: </td>' +
+        '<td><input id="' + tagData.unitValIdTag + '" class="input-box" type="text" name="' + tagData.unitValIdTag + '"></td>' +
+        '</tr><tr><td>Current WIP: </td>' +
+        '<td><input id="' + tagData.wipIdTag + '" class="input-box" type="text" name="' + tagData.wipIdTag + '"></td>' +
+        '</tr><tr><td>Produces: </td><td><input id="' + tagData.outputNameIdTag + '" class="input-box" type="text" name="' + tagData.outputNameIdTag + '"></td>' +
+        '</tr></table></div>';
+    $('#' + tagData.containerIdTag).append(stationSettingsHTML);
+
+    var myQueryContainer = {
+        station: station,
+        stationContainer: $('#' + tagData.containerIdTag),
+        cap: $('#' + tagData.capIdTag),
+        range: $('#' + tagData.rangeIdTag),
+        unitVal: $('#' + tagData.unitValIdTag),
+        varience: $('#' + tagData.varienceIdTag),
+        wip: $('#' + tagData.wipIdTag),
+        outputName: $('#' + tagData.outputNameIdTag)
+    };
+    this.queryContainer.push(myQueryContainer);
+
+    myQueryContainer.cap.val(station.baseCapacity);
+    myQueryContainer.range.val(station.capRange);
+    myQueryContainer.unitVal.val(station.unitValue);
+    myQueryContainer.varience.val(station.varFactor);
+    myQueryContainer.wip.val(station.wip[this.currentDay()]);
+    myQueryContainer.outputName.val(station.unitName);
+
+
+};
+
+ViewModel.prototype.createStationNetwork = function (station) {
+    if (this.currentScenario.simType === "Network") {
+        var stationNetworkContainer = $('#station' + station.idNumber + '-network');
+        var tableString = '<table class="resource-table">' +
+            '<tr><td></td><td>Resource</td><td>Amount</td><td>OnHand</td><td>Desired</td></tr>';
+
+        this.currentScenario.resourceList.forEach(function (resource) {
+            if (resource.name !== station.unitName) {
+                var checkId = 'station' + station.idNumber + 'res' + resource.name + 'check';
+                var reqAmountId = 'station' + station.idNumber + 'res' + resource.name + 'amount';
+                var onHandId = 'station' + station.idNumber + 'res' + resource.name + 'onHand';
+                var desiredId = 'station' + station.idNumber + 'res' + resource.name + 'desired';
+                tableString += '<tr><td>' +
+                    '<input type="checkbox" id=' + checkId + ' checked="unchecked" ></input></td>' +
+                    '<td>' + resource.name + '</td>' +
+                    '<td><input type="text" id=' + reqAmountId + ' class="input-box hidden" ></td>' +
+                    '<td><input type="text" id=' + onHandId + ' class="input-box hidden" ></td>' +
+                    '<td><input type="text" id=' + desiredId + ' class="input-box hidden" ></td></tr>';
+            }
         });
-        this.stationContainer[i].stationContainer.append(stationNetworkHTML);
-        this.stationContainer[i].stationContainer.append(stationGraphHTML);
-        this.stationContainer[i].cap.val(currentStation.baseCapacity);
-        this.stationContainer[i].range.val(currentStation.capRange);
-        this.stationContainer[i].unitVal.val(currentStation.unitValue);
-        this.stationContainer[i].varience.val(currentStation.varFactor);
-        this.stationContainer[i].wip.val(currentStation.wip[this.currentDay()]);
-        var canvas = "#" + stationGraphCanvasID;
+        tableString += '</table>';
+        stationNetworkContainer.append(tableString);
 
-        currentStation.graph = this.createChart(canvas, currentStation.output, currentStation.missedOp, currentStation.wip, null);
+        this.currentScenario.resourceList.forEach(function (resource) {
+            var checkId = 'station' + station.idNumber + 'res' + resource.name + 'check';
+            var reqAmountId = 'station' + station.idNumber + 'res' + resource.name + 'amount';
+            var onHandId = 'station' + station.idNumber + 'res' + resource.name + 'onHand';
+            var desiredId = 'station' + station.idNumber + 'res' + resource.name + 'desired';
+            $('#' + checkId).attr('checked', false);
+            $('#' + checkId).click(function () {
+                if ($(this).is(':checked')) {
+                    $('#' + reqAmountId).removeClass('hidden');
+                    if ($('#' + reqAmountId).val() === '') {
+                        $('#' + reqAmountId).val(1);
+                    }
+                    $('#' + onHandId).removeClass('hidden');
+                    if ($('#' + onHandId).val() === '') {
+                        $('#' + onHandId).val(0);
+                    }
+                    $('#' + desiredId).removeClass('hidden');
+                    if ($('#' + desiredId).val() === '') {
+                        $('#' + desiredId).val(1);
+                    }
 
+                    station.addResource(resource, $('#' + reqAmountId).val());
+                } else {
+                    $('#' + reqAmountId).addClass('hidden');
+                    $('#' + onHandId).addClass('hidden');
+                    $('#' + desiredId).addClass('hidden');
+                    station.deleteResource(resource);
+                }
+            });
+            $('#' + reqAmountId).change(function () {
+                station.updateResourceAmount(resource, $('#' + reqAmountId).val());
 
+            });
+            $('#' + desiredId).change(function () {
+                station.updateDesiredInventory(resource, $('#' + desiredId).val());
+
+            });
+
+        });
     }
 };
 
-ViewModel.prototype.clearUI = function () {
-    $('.settings').remove();
-    $('.graph').remove();
-    $('.station').remove();
-    $('.canvas').remove();
-    $('.control').addClass("hidden");
-
+ViewModel.prototype.refreshNetwork = function (station) {
+    var networkId = '#station' + station.idNumber + '-network';
+    app.viewModel.queryContainer[station.idNumber - 1].stationContainer.find(networkId).empty();
+    app.viewModel.createStationNetwork(station);
 };
+
+ViewModel.prototype.createStationGraph = function (station) {
+    var j = station.idNumber - 1;
+    var stationGraphID = 'station' + station.idNumber + '-graph';
+    var stationGraphCanvasID = 'station' + station.idNumber + '-canvas';
+    var stationGraphHTML = '<div id="' + stationGraphID + '" class="graph">' +
+        '<canvas id="' + stationGraphCanvasID + '" class="canvas"></canvas></div>';
+    var canvas = "#" + stationGraphCanvasID;
+    this.queryContainer[j].stationContainer.append(stationGraphHTML);
+    station.graph = null;
+    station.graph = this.createChart(canvas, station.output, station.missedOp, station.wip, null);
+};
+
 
 ViewModel.prototype.clearStations = function () {
     $('.station').remove();
-    self.stationContainer = [];
+    this.queryContainer = [];
     this.currentScenario.stations.forEach(function (station) {
-        station.graph.destroy();
+        if (station.graph) {
+            station.graph.destroy();
+        }
     });
+
 };
 
 //updates the display with the most recent data
 ViewModel.prototype.updateData = function () {
-    var day = this.currentDay();
     var scenario = this.currentScenario;
 
     for (var i = 0; i < scenario.stations.length; i++) {
-        var j = i + 1;
         var currentStation = scenario.stations[i];
-        var capID = "station" + j + "cap";
-        var rangeID = "station" + j + "range";
-        var unitValID = "station" + j + "unitValue";
-        var varID = "station" + j + "var";
-        var wipID = "station" + j + "wip";
+        this.queryContainer[i].cap.val(currentStation.baseCapacity);
+        this.queryContainer[i].range.val(currentStation.capRange);
+        this.queryContainer[i].unitVal.val(currentStation.unitValue);
+        this.queryContainer[i].varience.val(currentStation.varFactor);
+        this.queryContainer[i].wip.val(currentStation.wip[this.currentDay()]);
 
-        this.stationContainer[i].cap.val(currentStation.baseCapacity);
-        this.stationContainer[i].range.val(currentStation.capRange);
-        this.stationContainer[i].unitVal.val(currentStation.unitValue);
-        this.stationContainer[i].varience.val(currentStation.varFactor);
-        this.stationContainer[i].wip.val(currentStation.wip[this.currentDay() + 1]);
-
-        if (!self.finishProd) {
+        if (!this.finishProd) {
             currentStation.graph.options.scales.yAxes[1].ticks.suggestedMax = (scenario.maxStationWIP);
             currentStation.graph.update();
             scenario.graph.update();
         }
-
     }
-
-
 };
 
+ViewModel.prototype.addStationToResourceList = function (station) {
+    var addResource = true;
+    app.viewModel.currentScenario.resourceList.forEach(function (resource) {
+        if (resource.name === station.unitName) {
+            resource.addProvider(station);
+            addResource = false;
+        }
+    });
+    if (addResource) {
+        //not in our resource list, so let's add it.
+        var tempResource = new ResourceItem();
+        tempResource.name = station.unitName;
+        tempResource.value = station.unitValue;
+        tempResource.providerList = [];
+        tempResource.addProvider(station);
+        tempResource.idNumber = app.viewModel.resourceIdCounter;
+        app.viewModel.resourceIdCounter += 1;
+        app.viewModel.currentScenario.resourceList.splice(station.idNumber - 1, 0, tempResource);
+    }
+};
+
+ViewModel.prototype.removeStationFromResourceList = function (station) {
+    var scenario = app.viewModel.currentScenario;
+    var i = scenario.resourceList.length - 1;
+    for (i; i >= 0; i--) {
+        var resource = scenario.resourceList[i];
+        if (resource.containsStation(station)) {
+            resource.removeProvider(station);
+
+        }
+        if (!resource.hasProvider()) {
+            scenario.resourceList.splice(i, 1);
+        }
+    }
+};
+
+
+
+
 ViewModel.prototype.loadScenario = function (scenario) {
+    if (this.currentScenario !== null) {
+        this.clearUI();
+        this.currentScenario = null;
+    }
     if (this.$nav) {
         this.$nav.removeClass('open');
         this.$customSettings.toggle(false);
     }
+    this.scenarioTitle(scenario.name);
+    this.numOfStations(scenario.numOfStations);
+    this.numOfDays(scenario.numOfDays);
+
     this.currentScenario = scenario;
-    this.scenarioTitle(this.currentScenario.name);
-    this.numOfStations(this.currentScenario.numOfStations);
-    this.numOfDays(this.currentScenario.numOfDays);
+
+    scenario.stations.forEach(function (station) {
+        app.viewModel.addStationToResourceList(station);
+
+    });
     this.buildUI();
+    this.queryContainer.forEach(function (element) {
+        element.outputName.change(function () {
+            app.viewModel.removeStationFromResourceList(element.station);
+            element.station.unitName = element.outputName.val();
+            app.viewModel.addStationToResourceList(element.station);
+            var tempId = "station" + element.station.idNumber + element.outputName.val();
+
+            app.viewModel.currentScenario.stations.forEach(function (station) {
+                app.viewModel.refreshNetwork(station);
+            });
+        });
+        element.wip.change(function () {
+            var tempVal = parseInt(element.wip.val());
+            element.station.wip[app.viewModel.currentDay()] = tempVal;
+        });
+    });
+    if (this.currentScenario.simType === "Normal") {
+        $('#distribution').addClass('hidden');
+    } else {
+        $('#distribution').removeClass('hidden');
+    }
 };
+
+ViewModel.prototype.getStationFromUnitName = function (unitName) {
+    app.viewModel.currentScenario.stations.forEach(function (station) {
+        if (station.unitName === unitName) {
+            return station;
+        }
+    });
+};
+
+
+
 
 //instaniate our controller
 app.viewModel = new ViewModel();

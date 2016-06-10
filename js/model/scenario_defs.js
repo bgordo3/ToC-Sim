@@ -4,42 +4,47 @@ var Scenarios = [
     {
         name: 'Unbalanced Line',
         numOfDays: 30,
-        simType: 'normal',
+        simType: 'Normal',
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 5,
-                varFactor: 2
+                varFactor: 2,
+                unitName: 'copperOre'
                 },
             {
-                number: 2,
+                idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
-                varFactor: 2
+                varFactor: 2,
+                unitName: 'ironOre'
                 },
             {
-                number: 3,
+                idNumber: 3,
                 baseCapacity: 3.5,
                 initWIP: 4,
                 capRange: 2.5,
-                varFactor: 1
+                varFactor: 1,
+                unitName: 'ironBolt'
                 },
             {
-                number: 4,
+                idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
-                varFactor: 2
+                varFactor: 2,
+                unitName: 'ironBolt'
                 },
             {
-                number: 5,
+                idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5,
-                varFactor: 2
+                varFactor: 2,
+                unitName: 'seaforiumCharge'
                 }
             ]
         },
@@ -49,31 +54,31 @@ var Scenarios = [
         simType: 'normal',
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 3
                 },
             {
-                number: 2,
+                idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 3
                 },
             {
-                number: 3,
+                idNumber: 3,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 3
                 },
             {
-                number: 4,
+                idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5
                 },
             {
-                number: 5,
+                idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 5
@@ -86,31 +91,31 @@ var Scenarios = [
         simType: 'normal',
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 2
                 },
             {
-                number: 2,
+                idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 2
                 },
             {
-                number: 3,
+                idNumber: 3,
                 baseCapacity: 5,
                 initWIP: 4,
                 capRange: 5
                 },
             {
-                number: 4,
+                idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 2
                 },
             {
-                number: 5,
+                idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 2
@@ -123,31 +128,31 @@ var Scenarios = [
         simType: 'normal',
         stations: [
             {
-                number: 1,
+                idNumber: 1,
                 baseCapacity: 7,
                 initWIP: 0,
                 capRange: 7
                 },
             {
-                number: 2,
+                idNumber: 2,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 7
                 },
             {
-                number: 3,
+                idNumber: 3,
                 baseCapacity: 5,
                 initWIP: 4,
                 capRange: 7
                 },
             {
-                number: 4,
+                idNumber: 4,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 7
                 },
             {
-                number: 5,
+                idNumber: 5,
                 baseCapacity: 7,
                 initWIP: 4,
                 capRange: 7
@@ -155,31 +160,27 @@ var Scenarios = [
             ]
         },
     {
-        name: "Scenario 5",
-        numOfDays: 30,
-        simType: 'normal',
-        },
-    {
-        name: "Scenario 6",
-        numOfDays: 20,
-        stations: [
+        name: "Network Test",
+        numOfDays: 10,
+        simType: 'Network',
+                stations: [
             {
-                number: 1,
-                baseCapacity: 10,
-                initWIP: 4,
-                capRange: 0
+                idNumber: 1,
+                baseCapacity: 2,
+                initWIP: 0,
+                capRange: 1
                 },
             {
-                number: 2,
-                initWIP: 2,
-                baseCapacity: 5,
-                capRange: 0
+                idNumber: 2,
+                initWIP: 0,
+                baseCapacity: 2,
+                capRange: 1
                 },
             {
-                number: 3,
-                initWIP: 1,
-                baseCapacity: 5,
-                capRange: 0
+                idNumber: 3,
+                initWIP: 0,
+                baseCapacity: 2,
+                capRange: 1
                 }
             ]
         }

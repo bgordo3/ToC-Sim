@@ -1,11 +1,10 @@
-/*global $, Scenarios */
+/*global $, Scenarios, RequestQueue */
 var app = app || {};
 
 //Defines our Station objects. 
 var StationItem = function (data) {
     'use strict';
     var self = this;
-    self.initialData = data;
     self.capacity = [];
     self.eff = [];
     self.wipValue = [];
@@ -14,47 +13,55 @@ var StationItem = function (data) {
     self.prodValue = [];
     self.totalEff = [];
     self.wip = [];
-    self.reqResources =[];
+    self.outputInventory = 0;
+    self.reqResources = [];
+    self.reqQueue = new RequestQueue();
+
 
     self.baseCapacity = 10;
     self.capRange = 5;
     self.graph = null;
     self.maxWIP = 0;
-    self.number = data.number;
-    self.title = 'Station #' + self.number;
-    self.unitValue = data.number;
+    self.idNumber = data.idNumber;
+    self.title = 'Station #' + self.idNumber;
+    self.unitValue = data.idNumber;
     self.varFactor = 1;
+    self.unitName = '';
 
-    if (self.initialData) {
-        self.init(self.initialData);
+    if (data) {
+        //set inventory data if defined in scenario
+        if (data.initWIP) {
+            self.wip[0] = parseInt(data.initWIP);
+        }
+
+        //set baseCapacity data if defined in scenario
+        if (data.baseCapacity) {
+            self.baseCapacity = data.baseCapacity;
+        }
+
+        //set capRange if defined in scenario
+        if (data.capRange) {
+            self.capRange = data.capRange;
+        }
+
+        if (data.unitValue) {
+            self.unitValue = data.unitValue;
+        }
+
+        if (data.varFactor) {
+            self.varFactor = data.varFactor;
+        }
+
+        if (data.unitName) {
+            self.unitName = data.unitName;
+        } else {
+            self.unitName = 'widget' + data.idNumber;
+
+        }
     }
 
 };
-
-StationItem.prototype.init = function (data) {
-    //set inventory data if defined in scenario
-    if (data.initWIP) {
-        this.wip[0] = data.initWIP;
-    }
-
-    //set baseCapacity data if defined in scenario
-    if (data.baseCapacity) {
-        this.baseCapacity = data.baseCapacity;
-    }
-
-    //set capRange if defined in scenario
-    if (data.capRange) {
-        this.capRange = data.capRange;
-    }
-
-    if (data.unitValue) {
-        this.unitValue = data.unitValue;
-    }
-
-    if (data.varFactor) {
-        this.varFactor = data.varFactor;
-    }
-};
+StationItem.prototype = Object.create(StationItem.prototype);
 
 //calculations station capacity for the day based on baseCapacity and Sigma
 StationItem.prototype.calcCapacity = function (day) {
@@ -71,7 +78,7 @@ StationItem.prototype.calcCapacity = function (day) {
 
 StationItem.prototype.calcWip = function (day, wipToAdd) {
     //if we're station 1, our WIP is our capacity
-    if (this.number == 1) {
+    if (this.idNumber === 1) {
         this.wip[day] = this.capacity[day];
     } else {
         if (day !== 0) {
@@ -97,7 +104,7 @@ StationItem.prototype.calcEff = function (day) {
 };
 
 StationItem.prototype.calcValue = function (day, valueOfWip) {
-    this.prodValue[day] = parseInt(this.output[day] * this.unitValue);
+    this.prodValue[day] = this.output[day] * this.unitValue;
     this.wipValue[day] = this.wip[day] * valueOfWip;
 };
 
@@ -137,12 +144,147 @@ StationItem.prototype.doWork = function (day, wipToAdd, wipValue) {
 
 };
 
-StationItem.prototype.genNormal = function (a, b, c) {
+StationItem.prototype.doNetworkWork = function (day,excess) {
+    if(!excess){
+        excess=false;
+    }
+
+    //first we need to calculate or capacity for the day
+    this.calcCapacity(day);
+    var todayCapacity = this.capacity[day];
+
+    //now we need to see what the maxium number of things we can produce based on our requirements if it hasn't already been done
+    var startingWip = this.calcWipBasedOnInventory(day);
+    this.wip[day] = startingWip;
+    
+
+    //now we need to "do work"
+    //if the new wip for the day is greater than today's capacity,  our output is equal to our capacity,
+    //and we have 0 missed ops.  The starting WIP for tomorrow will be set to 0 since its baseed on resourceItems
+    if (startingWip >= todayCapacity) {
+        this.output[day] = todayCapacity;
+        this.missedOp[day] = 0;
+        // this.wip[day+1] = startingWip - todayCapacity;
+
+        //otherwise, our output is limited by our wip for the day, and we have our missed ops is equal to 
+        //today's capacity minus our WIP.    
+    } else {
+        this.output[day] = startingWip;
+        this.missedOp[day] = todayCapacity - startingWip;
+        //    this.wip[day + 1] = 0;
+    }
+
+
+
+    //now we need to make sure that we actually consume our resources based on the max number we can produce
+    var tempOutput = this.output[day];
+    this.reqResources.forEach(function (item) {
+        item.resourceItem.useResource(tempOutput, item.quantityRequired);
+    });
+
+    //finally, update our station efficiency
+    this.calcEff(day);
+
+    //update our stations inventory and output values for the day
+    this.outputInventory += this.output[day];
+
+    //calculate the value of the resources onHand
+    var resourceValue = 0;
+    this.reqResources.forEach(function (item) {
+        var resource = item.resourceItem;
+        resourceValue += resource.getValue();
+    });
+    this.wipValue[day] = resourceValue;
+    this.prodValue[day] = this.output[day] * this.unitValue;
+
+
+};
+
+StationItem.prototype.genNormal = function (min, max, varFact) {
     var total = 0;
     var capacity = 0;
-    for (var i = 1; i <= c; i++) {
-        capacity = (Math.random() * (b - a + 1) + a);
+    for (var i = 1; i <= varFact; i++) {
+        capacity = (Math.random() * (max - min + 1) + min);
         total += capacity;
     }
-    return Math.floor(total / c);
+    return Math.floor(total / varFact);
+};
+
+StationItem.prototype.addResource = function (resource, reqAmount, desAmount) {
+    var newResource = {
+        resourceItem: resource,
+        quantityRequired: reqAmount,
+        desiredLevel: desAmount
+    };
+    this.reqResources.push(newResource);
+};
+
+StationItem.prototype.deleteResource = function (_resource) {
+    var i = this.reqResources - 1;
+    for (i; i >= 0; i--) {
+        var resource = this.reqResources[i].resourceItem;
+        if (resource === _resource) {
+            this.providerList.splice(i, 1);
+        }
+    }
+};
+
+StationItem.prototype.needsStation = function (station) {
+    var isRequired = false;
+    this.reqResources.forEach(function (item) {
+        var resource = item.resourceItem;
+        if (resource.containsStation(station)) {
+            isRequired = true;
+        }
+    });
+    return isRequired;
+};
+
+StationItem.prototype.addInventory = function (station, amount) {
+    var continueCheck = true;
+    this.reqResources.forEach(function (item) {
+        var resource = item.resourceItem;
+        if (resource.containsStation(station) && continueCheck) {
+            resource.addOnHand(amount);
+            continueCheck = false;
+        }
+    });
+};
+
+StationItem.prototype.calcWipBasedOnInventory = function (day) {
+    var maxNumberProd = -1;
+    if (this.reqResources.length > 0) {
+        this.reqResources.forEach(function (item) {
+            var maxSubComponent = item.resourceItem.canMake(item.quantityRequired);
+            if (maxNumberProd === -1 || maxSubComponent < maxNumberProd) {
+                maxNumberProd = maxSubComponent;
+            }
+        });
+    } else {
+        maxNumberProd = this.capacity[day];
+    }
+    return maxNumberProd;
+    };
+
+StationItem.prototype.updateResourceAmount = function (resource, amount) {
+    this.reqResources.forEach(function (item) {
+        if (item.resourceItem === resource) {
+            item.quantityRequired = amount;
+        }
+
+    });
+};
+
+StationItem.prototype.getResources = function () {
+    return this.reqResources;
+};
+
+StationItem.prototype.updateDesiredInventory = function (resource, amount) {
+    this.reqResources.forEach(function (item) {
+        if (item.resourceItem === resource) {
+            item.desiredLevel = amount;
+        }
+
+
+    });
 };
