@@ -310,6 +310,7 @@ ViewModel.prototype.buildUI = function () {
         '<div id=distribution>' +
         'Output Distribution: ' +
         '<select id="distribution-option" class="select-box"">' +
+        '<option value="Optimized Pull">Demand Based</option>' +
         '<option value="Optimized Pull">Optimized Pull</option>' +
         '<option value="Fair Share">Fair Share</option>' +
         '<option value="Priority Pull">Priority Pull</option>' +
@@ -462,13 +463,24 @@ ViewModel.prototype.runNetworkProduction = function () {
             });
     };
 
-    /*
+/**
+ * @description distributes output based on Demand.  Only used for network style 
+ * simulations.
+ */
+    ViewModel.prototype.distributeDemand = function () {
+
+    };
+
+/*
  * @description distributes output of each station.  Only used for network style 
  * simulations.  
  */
 ViewModel.prototype.distributeOutput = function () {
     switch ($('#distribution-option').val()) {
 
+        case 'Demand Based':
+             this.distributeDemand(); 
+        break;
         /*
          * For optimized Pull, we need to build a list of who needs what first,
          * then we will go back and distribute based on need.
