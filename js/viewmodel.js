@@ -1,4 +1,5 @@
 /*global $, Model, ko, ScenarioItem, ChartHelper, ResourceItem, ResourceRequest */
+
 // global application variable
 var app = app || {};
 
@@ -310,7 +311,7 @@ ViewModel.prototype.buildUI = function () {
         '<div id=distribution>' +
         'Output Distribution: ' +
         '<select id="distribution-option" class="select-box"">' +
-        '<option value="Optimized Pull">Demand Based</option>' +
+        '<option value="Demand Based">Demand Based</option>' +
         '<option value="Optimized Pull">Optimized Pull</option>' +
         '<option value="Fair Share">Fair Share</option>' +
         '<option value="Priority Pull">Priority Pull</option>' +
@@ -388,88 +389,120 @@ ViewModel.prototype.runNetworkProduction = function () {
 };
 
 
-    ViewModel.prototype.distributeRoundRobin = function () {
-            var i = 0;
-            for (i; i < this.currentScenario.stations.length; i++) {
-                var currentStation = this.currentScenario.stations[i];
-                //build a list of stations that require this output
-                var stationsThatNeedMe = [];
-                app.viewModel.currentScenario.stations.forEach(function (otherStation) {
-                    if (currentStation !== otherStation) {
-                        if (otherStation.needsStation(currentStation)) {
-                            stationsThatNeedMe.push(otherStation);
-                        }
-                    }
-                });
-
-                if (stationsThatNeedMe.length > 0) {
-                    while (currentStation.outputInventory > 0) {
-                        stationsThatNeedMe.forEach(function (recStation) {
-                            if (currentStation.outputInventory > 0) {
-                                recStation.addInventory(currentStation, 1);
-                                currentStation.outputInventory = currentStation.outputInventory - 1;
-                            }
-                        });
-                    }
+ViewModel.prototype.distributeRoundRobin = function () {
+    var i = 0;
+    for (i; i < this.currentScenario.stations.length; i++) {
+        var currentStation = this.currentScenario.stations[i];
+        //build a list of stations that require this output
+        var stationsThatNeedMe = [];
+        app.viewModel.currentScenario.stations.forEach(function (otherStation) {
+            if (currentStation !== otherStation) {
+                if (otherStation.needsStation(currentStation)) {
+                    stationsThatNeedMe.push(otherStation);
                 }
-
             }
-    };
+        });
 
-    ViewModel.prototype.distributeOptimized = function () {
-                    this.currentScenario.stations.forEach(function (requestingStation) {
-                requestingStation.reqResources.forEach(function (resource) {
-                    var invDelta = resource.desiredLevel - resource.resourceItem.onHand();
-                    
-                    while (invDelta > 0) {
-                        resource.resourceItem.providerList.forEach(function (providerStation) {
-                            if (invDelta > 0) {
-                                var priority = '';
-                                if (invDelta < (resource.desiredLevel / 3)) {
-                                    priority = 'low';
-                                } else if (invDelta > (resource.desiredLevel / 3) * 2) {
-                                    priority = 'high';
-                                } else {
-                                    priority = 'med';
-                                }
-                                var tempRequest = new ResourceRequest();
-                                tempRequest.setRequestingStation(requestingStation);
-                                tempRequest.setPriority(priority);
-                                tempRequest.setNumRequested(1);
-                                providerStation.reqQueue.addToQueue(tempRequest);
-                                console.log(providerStation.reqQueue);
-                                invDelta -= 1;                                
-                            }
-                        });
+        if (stationsThatNeedMe.length > 0) {
+            while (currentStation.outputInventory > 0) {
+                stationsThatNeedMe.forEach(function (recStation) {
+                    if (currentStation.outputInventory > 0) {
+                        recStation.addInventory(currentStation, 1);
+                        currentStation.outputInventory = currentStation.outputInventory - 1;
                     }
                 });
-            });
+            }
+        }
 
-            /**
-             * Now that demand has been established we need to go through all of the stations
-             * and distribute our output.
-             */
-            this.currentScenario.stations.forEach(function (sendingStation) {
-                var needToOutput = true;                
-                while (sendingStation.outputInventory > 0 && needToOutput) {
-                    var recStation = sendingStation.reqQueue.getNextRequest();
-                    if (recStation) {
-                        recStation.addInventory(sendingStation, 1);
-                        sendingStation.outputInventory = sendingStation.outputInventory - 1;
-                    } else {
-                        needToOutput = false;
+    }
+};
+
+ViewModel.prototype.distributeOptimized = function () {
+    this.currentScenario.stations.forEach(function (requestingStation) {
+        requestingStation.reqResources.forEach(function (resource) {
+            var invDelta = resource.desiredLevel - resource.onHand;
+
+            while (invDelta > 0) {
+                resource.resourceItem.providerList.forEach(function (providerStation) {
+                    if (invDelta > 0) {
+                        var priority = '';
+                        if (invDelta < (resource.desiredLevel / 3)) {
+                            priority = 'low';
+                        } else if (invDelta > (resource.desiredLevel / 3) * 2) {
+                            priority = 'high';
+                        } else {
+                            priority = 'med';
+                        }
+                        var tempRequest = new ResourceRequest();
+                        tempRequest.setRequestingStation(requestingStation);
+                        tempRequest.setPriority(priority);
+                        tempRequest.setNumRequested(1);
+                        providerStation.reqQueue.addToQueue(tempRequest);
+                        console.log(providerStation.reqQueue);
+                        invDelta -= 1;
                     }
-                }
-            });
-    };
+                });
+            }
+        });
+    });
+
+    /**
+     * Now that demand has been established we need to go through all of the stations
+     * and distribute our output.
+     */
+    this.currentScenario.stations.forEach(function (sendingStation) {
+        var needToOutput = true;
+        while (sendingStation.outputInventory > 0 && needToOutput) {
+            var recStation = sendingStation.reqQueue.getNextRequest();
+            if (recStation) {
+                recStation.addInventory(sendingStation, 1);
+                sendingStation.outputInventory = sendingStation.outputInventory - 1;
+            } else {
+                needToOutput = false;
+            }
+        }
+    });
+};
 
 /**
  * @description distributes output based on Demand.  Only used for network style 
  * simulations.
  */
-    ViewModel.prototype.distributeDemand = function () {
+ViewModel.prototype.distributeDemand = function () {
+    console.log("in demandbased");
+    //first we need to build a list of nodes that are final producers
+    var finalStations = [];
+    var notNeeded = true;
+    var i = 0;
+    for (i; i < this.currentScenario.stations.length; i++) {
+        var currentStation = this.currentScenario.stations[i];
+        //build a list of stations that require this output
+        app.viewModel.currentScenario.stations.forEach(function (otherStation) {
+            if (notNeeded) {
+                if (currentStation !== otherStation) {
+                    if (otherStation.needsStation(currentStation)) {
+                        notNeeded = false;
+                    }
+                }
+            }
+        });
 
-    };
+        if (notNeeded) {
+            finalStations.push(currentStation);
+
+        }
+        notNeeded = true;
+    }
+
+    //now that we have a list of final producers, we can work back recursively, generating requests
+    //based on the number of items we need.
+
+    finalStations.forEach(function (finalStation) {
+        var produced = finalStation.output[app.viewModel.currentDay()];
+        console.log(finalStation.title + " :" + produced);
+    });
+
+};
 
 /*
  * @description distributes output of each station.  Only used for network style 
@@ -479,14 +512,14 @@ ViewModel.prototype.distributeOutput = function () {
     switch ($('#distribution-option').val()) {
 
         case 'Demand Based':
-             this.distributeDemand(); 
-        break;
+            this.distributeDemand();
+            break;
         /*
          * For optimized Pull, we need to build a list of who needs what first,
          * then we will go back and distribute based on need.
          */
         case 'Optimized Pull':
-            this.distributeOptimized();        
+            this.distributeOptimized();
             //now that we've done our best to distribute based on priority, we will give out the rest round robin
             this.distributeRoundRobin();
             break;
@@ -507,7 +540,7 @@ ViewModel.prototype.distributeOutput = function () {
             var tempResource = new ResourceItem();
             tempResource = item.resourceItem;
             var onHandId = 'station' + station.idNumber + 'res' + tempResource.getName() + 'onHand';
-            $('#' + onHandId).val(parseInt(tempResource.onHand()));
+            $('#' + onHandId).val(parseInt(item.onHand));
         });
 
     });
@@ -632,14 +665,13 @@ ViewModel.prototype.createStationNetwork = function (station) {
                     }
                     $('#' + onHandId).removeClass('hidden');
                     if ($('#' + onHandId).val() === '') {
-                        $('#' + onHandId).val(0);
+                        $('#' + onHandId).val(5);
                     }
                     $('#' + desiredId).removeClass('hidden');
                     if ($('#' + desiredId).val() === '') {
                         $('#' + desiredId).val(1);
                     }
-
-                    station.addResource(resource, $('#' + reqAmountId).val());
+                    station.addResource(resource, $('#' + reqAmountId).val(), $('#' + desiredId).val(), $('#' + onHandId).val());
                 } else {
                     $('#' + reqAmountId).addClass('hidden');
                     $('#' + onHandId).addClass('hidden');
@@ -648,11 +680,15 @@ ViewModel.prototype.createStationNetwork = function (station) {
                 }
             });
             $('#' + reqAmountId).change(function () {
-                station.updateResourceAmount(resource, $('#' + reqAmountId).val());
+                station.setResourceRequiredAmount(resource, $('#' + reqAmountId).val());
 
             });
             $('#' + desiredId).change(function () {
-                station.updateDesiredInventory(resource, $('#' + desiredId).val());
+                station.setResourceDesiredInventory(resource, $('#' + desiredId).val());
+
+            });
+            $('#' + onHandId).change(function () {
+                station.setResourceOnHand(resource, $('#' + onHandId).val());
 
             });
 

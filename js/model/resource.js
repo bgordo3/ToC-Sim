@@ -77,8 +77,8 @@ ResourceItem.prototype.useMaxResource = function (required) {
     return produced;
 };
 
-ResourceItem.prototype.canMake = function (required) {
-    var producable = Math.floor(this.numberOnHand / required);
+ResourceItem.prototype.canMake = function (onHand, required) {
+    var producable = Math.floor(onHand / required);
 
     if (producable >= 1) {
         return producable;
@@ -104,3 +104,9 @@ ResourceItem.prototype.onHand = function () {
 ResourceItem.prototype.getName = function () {
     return this.name;
 };
+
+
+ResourceItem.prototype.setOnHand = function (num) {
+    this.numberOnHand = num;
+};
+

@@ -145,7 +145,7 @@ StationItem.prototype.doWork = function (day, wipToAdd, wipValue) {
 };
 
 StationItem.prototype.doNetworkWork = function (day,excess) {
-    if(!excess){
+    if(excess===null){
         excess=false;
     }
 
@@ -155,6 +155,7 @@ StationItem.prototype.doNetworkWork = function (day,excess) {
 
     //now we need to see what the maxium number of things we can produce based on our requirements if it hasn't already been done
     var startingWip = this.calcWipBasedOnInventory(day);
+    console.log(this.title + " startingWip: " + startingWip);
     this.wip[day] = startingWip;
     
 
@@ -174,12 +175,11 @@ StationItem.prototype.doNetworkWork = function (day,excess) {
         //    this.wip[day + 1] = 0;
     }
 
-
-
     //now we need to make sure that we actually consume our resources based on the max number we can produce
     var tempOutput = this.output[day];
     this.reqResources.forEach(function (item) {
-        item.resourceItem.useResource(tempOutput, item.quantityRequired);
+        item.onHand -= (tempOutput * item.quantityRequired);
+       // item.resourceItem.useResource(tempOutput, item.quantityRequired);
     });
 
     //finally, update our station efficiency
@@ -210,11 +210,12 @@ StationItem.prototype.genNormal = function (min, max, varFact) {
     return Math.floor(total / varFact);
 };
 
-StationItem.prototype.addResource = function (resource, reqAmount, desAmount) {
+StationItem.prototype.addResource = function (resource, reqAmount, desAmount, onHandAmount) {
     var newResource = {
         resourceItem: resource,
         quantityRequired: reqAmount,
-        desiredLevel: desAmount
+        desiredLevel: desAmount,
+        onHand: onHandAmount
     };
     this.reqResources.push(newResource);
 };
@@ -245,7 +246,7 @@ StationItem.prototype.addInventory = function (station, amount) {
     this.reqResources.forEach(function (item) {
         var resource = item.resourceItem;
         if (resource.containsStation(station) && continueCheck) {
-            resource.addOnHand(amount);
+            item.onHand += amount;
             continueCheck = false;
         }
     });
@@ -255,7 +256,7 @@ StationItem.prototype.calcWipBasedOnInventory = function (day) {
     var maxNumberProd = -1;
     if (this.reqResources.length > 0) {
         this.reqResources.forEach(function (item) {
-            var maxSubComponent = item.resourceItem.canMake(item.quantityRequired);
+            var maxSubComponent = item.resourceItem.canMake(item.onHand, item.quantityRequired);
             if (maxNumberProd === -1 || maxSubComponent < maxNumberProd) {
                 maxNumberProd = maxSubComponent;
             }
@@ -266,7 +267,7 @@ StationItem.prototype.calcWipBasedOnInventory = function (day) {
     return maxNumberProd;
     };
 
-StationItem.prototype.updateResourceAmount = function (resource, amount) {
+StationItem.prototype.setResourceRequiredAmount = function (resource, amount) {
     this.reqResources.forEach(function (item) {
         if (item.resourceItem === resource) {
             item.quantityRequired = amount;
@@ -279,12 +280,20 @@ StationItem.prototype.getResources = function () {
     return this.reqResources;
 };
 
-StationItem.prototype.updateDesiredInventory = function (resource, amount) {
+StationItem.prototype.setResourceDesiredInventory = function (resource, amount) {
     this.reqResources.forEach(function (item) {
         if (item.resourceItem === resource) {
             item.desiredLevel = amount;
         }
 
 
+    });
+};
+
+StationItem.prototype.setResourceOnHand = function (resource, amount) {
+    this.reqResources.forEach(function (item) {
+        if (item.resourceItem === resource) {
+            item.onHand = amount; 
+        }
     });
 };
